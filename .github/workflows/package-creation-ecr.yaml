@@ -76,6 +76,18 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
+    - name: Build and push Docker mutable image
+      uses: docker/build-push-action@v3
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: ${{ inputs.ecr_repository }}
+      with:
+        context: ${{ inputs.context }}
+        build-args: ${{ inputs.build_args }}
+        file: ${{ inputs.file }}
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+      if: inputs.tag_mutability
 
     - name: Build and push Docker immutable image
       uses: docker/build-push-action@v3
@@ -90,3 +102,4 @@ jobs:
         file: ${{ inputs.file }}
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
+      if: inputs.tag_mutability != true
