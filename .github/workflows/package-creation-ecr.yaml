@@ -39,9 +39,9 @@ on:
         type: string
         description: "The environment variable for the workflow"
         required: true
-    secrets:
-      TOKEN:
-        required: true
+#    secrets:
+#      TOKEN:
+#        required: true
 
 
 jobs:
@@ -99,6 +99,7 @@ jobs:
         build-args: |
           ${{ inputs.build_args }}
           GITHUB_OAUTH_TOKEN=${{ secrets.TOKEN }}
+          NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
