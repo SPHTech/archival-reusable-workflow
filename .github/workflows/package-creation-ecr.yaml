@@ -39,18 +39,18 @@ on:
         type: string
         description: "The environment variable for the workflow"
         required: true
-    secrets:
-      TOKEN:
-        required: true
-      NEWRELIC_PHP_LICENSE_KEY:
-        required: true
+#    secrets:
+#      TOKEN:
+#        required: true
+#      NEWRELIC_PHP_LICENSE_KEY:
+#        required: true
 
 
 jobs:
   publish-to-ecr:
     name: Build and Publish to ECR
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+#    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       id-token: write
