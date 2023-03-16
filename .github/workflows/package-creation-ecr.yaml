@@ -39,11 +39,11 @@ on:
         type: string
         description: "The environment variable for the workflow"
         required: true
-#    secrets:
-#      TOKEN:
-#        required: true
-#      NEWRELIC_PHP_LICENSE_KEY:
-#        required: true
+    secrets:
+      TOKEN:
+        required: true
+      NEWRELIC_PHP_LICENSE_KEY:
+        required: true
 
 
 jobs:
@@ -96,7 +96,6 @@ jobs:
       env:
         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         REPOSITORY: ${{ inputs.ecr_repository }}
-        GITHUB_OKEN: ${{ secrets.TOKEN }}
       with:
         build-args: |
           ${{ inputs.build_args }}
