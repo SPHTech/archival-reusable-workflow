@@ -15,10 +15,6 @@ on:
         description: "AWS account region"
         type: string
         required: true
-      environment:
-        type: string
-        description: "The environment variable for the workflow"
-        required: true
       ecr_repository:
         description: "ECR repository name"
         type: string
@@ -63,7 +59,7 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
 
     - name: Download task definition
-      run: aws ecs describe-task-definition --task-definition ${{ inputs.ecs_task_def }}-${{ inputs.environment }} --query taskDefinition > task-definition.json
+      run: aws ecs describe-task-definition --task-definition ${{ inputs.ecs_task_def }} --query taskDefinition > task-definition.json
 
     - name: Set image tag
       run: echo "IMAGE_TAG=${GITHUB_SHA::8}" >> "${GITHUB_ENV}"
