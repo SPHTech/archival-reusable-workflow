@@ -9,6 +9,9 @@ repos:
       # Git style
       - id: check-added-large-files
       - id: check-merge-conflict
+      - id: mixed-line-ending
+#      - id: no-commit-to-branch
+#        args: [ '--branch', 'main' ]
 
       # Common errors
       - id: end-of-file-fixer
