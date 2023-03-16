@@ -39,9 +39,11 @@ on:
         type: string
         description: "The environment variable for the workflow"
         required: true
-#    secrets:
-#      TOKEN:
-#        required: true
+    secrets:
+      TOKEN:
+        required: true
+      NEWRELIC_PHP_LICENSE_KEY:
+        required: true
 
 
 jobs:
