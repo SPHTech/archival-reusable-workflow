@@ -11,10 +11,6 @@ on:
         description: "AWS account region"
         type: string
         required: true
-      aws_account_id:
-        description: "AWS account Id"
-        type: string
-        required: true
       aws_iam_role_arn:
         description: "AWS ARN IAM Role"
         type: string
@@ -29,11 +25,15 @@ on:
         type: string
         required: false
         default: './'
-      files_to_zip:
+      build_script_path:
+        description: "Adding a build script path"
         type: string
-        description: 'Files Semi Colon separated list that needed to be included to zip'
         required: true
-      lambda_environment:
+      local_build_path:
+        description: " Add the local build path"
+        type: string
+        required: true
+      lambda_environment_var:
         description: "AWS Lambda comma Separate list of environment variable"
         type: string
         required: false
@@ -60,40 +60,19 @@ jobs:
         cache: 'pip'
       if:  ${{ inputs.lambda_code_base == 'python' }}
 
-    - name: Zip
+    - name: Build the Lambda
       working-directory: ${{ inputs.working_directory }}
       run: |
-        mkdir sample
-        IFS=';' read -ra ADDR <<< "${{ inputs.files_to_zip }}"
-        for i in "${ADDR[@]}"; do
-        	if [[ -d $i ]]; then
-        		echo "$i is a directory"
-        		cp -R $i ./sample
-        	elif [[ -f $i ]]; then
-        		echo "$i is a file"
-        		cp $i ./sample
-        	else
-        		echo "$i is not valid"
-        	fi
-        done
-        cd sample
-        zip -rm ${{inputs.lambda_function_name}}.zip .
+        bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
 
     - name: Deploy to Lamnda
       working-directory: ${{ inputs.working_directory }}
       run: |
-        aws lambda update-function-code --function-name=${{inputs.lambda_function_name}} --zip-file=fileb://sample/${{inputs.lambda_function_name}}.zip
+        aws lambda update-function-code --function-name=${{inputs.lambda_function_name}} --zip-file=fileb://${{ inputs.local_build_path }}
 
     - name: Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
-        --environment "Variables={${{ inputs.lambda_environment }}}" --role ${{ inputs.aws_iam_role_arn }}
-      if: ${{ inputs.lambda_environment }}
-#runs:
-#  using: 'docker'
-#  image: 'Dockerfile'
-#  args:
-#    - ${{ inputs.lambda_function_name }}
-#    - ${{ inputs.zip_file }}
-#    - ${{ inputs.aws_iam_role }}
+        --environment "Variables={${{ inputs.lambda_environment_var }}}" --role ${{ inputs.aws_iam_role_arn }}
+      if: ${{ inputs.lambda_environment_var !='' }}
