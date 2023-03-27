@@ -20,6 +20,7 @@ on:
         description: "AWS S3 bucket where the lambda zip file is stored"
         type: string
         required: false
+        default: ""
       language:
         type: string
         description: "Frontend Language to build"
@@ -107,7 +108,7 @@ jobs:
     - name: Deploy to S3
       run: |
         echo ${GITHUB_WORKSPACE}
-        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_deploy_script }}
+        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_deploy_script }} ${{  inputs.s3_frontend_bucket }} ${{  inputs.s3_admin_bucket }}
 
     - name: Invalidate CloudFront cache for Frontend
       uses: chetan/invalidate-cloudfront-action@v2.4
