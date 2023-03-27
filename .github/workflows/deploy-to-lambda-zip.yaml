@@ -1,0 +1,99 @@
+name: 'Deploy AWS Lambda Using Zip'
+
+on:
+  workflow_call:
+    inputs:
+      lambda_function_name:
+        description: "Lambda name to be deployed"
+        type: string
+        required: true
+      aws_account_region:
+        description: "AWS account region"
+        type: string
+        required: true
+      aws_account_id:
+        description: "AWS account Id"
+        type: string
+        required: true
+      aws_iam_role_arn:
+        description: "AWS ARN IAM Role"
+        type: string
+        required: true
+      lambda_code_base:
+        description: "Lambda Language to deploy"
+        type: string
+        required: false
+        default: "python"
+      working_directory:
+        description: "Working Directory of the project"
+        type: string
+        required: false
+        default: './'
+      files_to_zip:
+        type: string
+        description: 'Files Semi Colon separated list that needed to be included to zip'
+        required: true
+      lambda_environment:
+        description: "AWS Lambda comma Separate list of environment variable"
+        type: string
+        required: false
+
+jobs:
+  deploy-lambda:
+    name:  Deploy to Lambda
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{ inputs.aws_iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+
+    - uses: actions/setup-python@v4
+      name: Install Python and pip
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+      if:  ${{ inputs.lambda_code_base == 'python' }}
+
+    - name: Zip
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        mkdir sample
+        IFS=';' read -ra ADDR <<< "${{ inputs.files_to_zip }}"
+        for i in "${ADDR[@]}"; do
+        	if [[ -d $i ]]; then
+        		echo "$i is a directory"
+        		cp -R $i ./sample
+        	elif [[ -f $i ]]; then
+        		echo "$i is a file"
+        		cp $i ./sample
+        	else
+        		echo "$i is not valid"
+        	fi
+        done
+        cd sample
+        zip -rm ${{inputs.lambda_function_name}}.zip .
+
+    - name: Deploy to Lamnda
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        aws lambda update-function-code --function-name=${{inputs.lambda_function_name}} --zip-file=fileb://sample/${{inputs.lambda_function_name}}.zip
+
+    - name: Update Lambda Environment Variables
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
+        --environment "Variables={${{ inputs.lambda_environment }}}" --role ${{ inputs.aws_iam_role_arn }}
+      if: ${{ inputs.lambda_environment }}
+#runs:
+#  using: 'docker'
+#  image: 'Dockerfile'
+#  args:
+#    - ${{ inputs.lambda_function_name }}
+#    - ${{ inputs.zip_file }}
+#    - ${{ inputs.aws_iam_role }}

@@ -1,4 +1,4 @@
-name: package-creation-ecr
+name: 'Package and Deploy ECR'
 
 on:
   workflow_call:

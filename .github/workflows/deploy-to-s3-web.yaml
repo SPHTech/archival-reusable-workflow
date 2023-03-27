@@ -1,0 +1,123 @@
+name: 'Deploy S3 Assets to the AWS S3 and invalidate the cache'
+
+on:
+  workflow_call:
+    inputs:
+      iam_role_arn:
+        description: "aws iam role arn for ecr repository access"
+        type: string
+        required: true
+      aws_account_region:
+        description: "AWS account region"
+        type: string
+        required: false
+        default: ap-southeast-1
+      s3_frontend_bucket:
+        description: "AWS S3 bucket for deploying the front "
+        type: string
+        required: true
+      s3_admin_bucket:
+        description: "AWS S3 bucket where the lambda zip file is stored"
+        type: string
+        required: false
+      language:
+        type: string
+        description: "Frontend Language to build"
+        required: true
+      environmet_repository:
+        type: string
+        default: dev
+        description: "Environment repository secrets"
+        required: false
+      s3_build_script:
+        description: "Path to the build Script for building the project including arguments(if needed)"
+        type: string
+        required: true
+      s3_deploy_script:
+        description: "Path to the Deploy Script for deploying including arguments(if needed)"
+        type: string
+        required: true
+      cloudfront_dist_frontend_invalidate:
+        description: "Cloudfront Distribution ID for the frontend"
+        type: string
+        required: false
+      cloudfront_path_frontend_invalidate:
+        description: "Cloudfront Distribution path for front end to invalidate"
+        default: "/"
+        type: string
+        required: false
+      cloudfront_region_frontend_invalidate:
+        description: "Cloudfront Distribution region for front end to invalidate"
+        default: ap-southeast-1
+        type: string
+        required: false
+      cloudfront_dist_admin_invalidate:
+        description: "Cloudfront Distribution ID for the Admin"
+        type: string
+        required: false
+      cloudfront_path_admin_invalidate:
+        description: "Cloudfront Distribution path for admin to invalidate"
+        default: "/"
+        type: string
+        required: false
+      cloudfront_region_admin_invalidate:
+        description: "Cloudfront Distribution region for Admin to invalidate"
+        default: ap-southeast-1
+        type: string
+        required: false
+
+
+jobs:
+  deploy-to-s3:
+    name: Deploy to S3 and Invalidate Cloudfront Cache
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environmet_repository }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{  inputs.iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 14
+        check-latest: true
+      if:  ${{ inputs.language == 'nodejs' }}
+
+    - name: Install dependencies
+      env:
+        CI: false
+      run: |
+        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_build_script }}
+
+    - name: Deploy to S3
+      run: |
+        echo ${GITHUB_WORKSPACE}
+        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_deploy_script }}
+
+    - name: Invalidate CloudFront cache for Frontend
+      uses: chetan/invalidate-cloudfront-action@v2.4
+      env:
+        DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_FRONTEND_ID }}
+        PATHS: ${{ inputs.cloudfront_path_frontend_invalidate }}
+        AWS_REGION: ${{ inputs.cloudfront_region_frontend_invalidate }}
+        DEBUG: 1
+      if: ${{ inputs.cloudfront_dist_frontend_invalidate }}
+    - name: Invalidate CloudFront cache for Admin
+      uses: chetan/invalidate-cloudfront-action@v2.4
+      env:
+        DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ADMIN_ID }}
+        PATHS: ${{ inputs.cloudfront_path_admin_invalidate }}
+        AWS_REGION: ${{ inputs.cloudfront_region_admin_invalidate }}
+        DEBUG: 1
+      if: ${{ inputs.cloudfront_dist_admin_invalidate != '' }}

@@ -1,4 +1,4 @@
-name: deploy-to-ecs
+name: 'Deploy to ECS'
 
 on:
   workflow_call:
