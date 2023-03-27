@@ -65,7 +65,11 @@ on:
         default: ap-southeast-1
         type: string
         required: false
-
+    secrets:
+      CLOUDFRONT_DISTRIBUTION_FRONTEND_ID:
+        required: false
+      CLOUDFRONT_DISTRIBUTION_ADMIN_ID:
+        required: false
 
 jobs:
   deploy-to-s3:
@@ -112,7 +116,7 @@ jobs:
         PATHS: ${{ inputs.cloudfront_path_frontend_invalidate }}
         AWS_REGION: ${{ inputs.cloudfront_region_frontend_invalidate }}
         DEBUG: 1
-      if: ${{ inputs.cloudfront_dist_frontend_invalidate }}
+      if: ${{ env.DISTRIBUTION != '' }}
     - name: Invalidate CloudFront cache for Admin
       uses: chetan/invalidate-cloudfront-action@v2.4
       env:
@@ -120,4 +124,4 @@ jobs:
         PATHS: ${{ inputs.cloudfront_path_admin_invalidate }}
         AWS_REGION: ${{ inputs.cloudfront_region_admin_invalidate }}
         DEBUG: 1
-      if: ${{ inputs.cloudfront_dist_admin_invalidate != '' }}
+      if: ${{ env.DISTRIBUTION != '' }}
