@@ -38,8 +38,9 @@ jobs:
 
     - name: Get the Latest Lambda Layer
       run: |
-        echo "latest-lambda-layer=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')" >> $GITHUB_ENV
+        echo "latestlambdalayer=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')" >> $GITHUB_ENV
 
     - name: Update the Lambda Layer
       run: |
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latest-lambda-layer
+        echo $latestlambdalayer
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latestlambdalayer
