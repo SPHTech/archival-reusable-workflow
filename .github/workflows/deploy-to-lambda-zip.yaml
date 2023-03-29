@@ -73,8 +73,7 @@ jobs:
       run: |
         # LAMBDA_ENV_INPUT_VAR="${'${{ inputs.lambda_environment_var }}'//\"/\\\"}"
         # echo $LAMBDA_ENV_INPUT_VAR
-        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name archival-batch-classified-merge-ads-dev | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${{ inputs.lambda_environment_var }}})}")
-        echo $UPDATED_ENVIRONMNET_VARIABLES
+        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name ${{inputs.lambda_function_name}} | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${{ inputs.lambda_environment_var }}})}")
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
         --environment ${UPDATED_ENVIRONMNET_VARIABLES}
       if: ${{ inputs.lambda_environment_var !='' }}
