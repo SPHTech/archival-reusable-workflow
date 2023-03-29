@@ -62,5 +62,5 @@ jobs:
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
-        --environment "Variables={${{ inputs.lambda_environment_var }}}" --role ${{ inputs.aws_iam_role_arn }}
+        --environment "Variables={${{ inputs.lambda_environment_var }}}"
       if: ${{ inputs.lambda_environment_var !='' }}
