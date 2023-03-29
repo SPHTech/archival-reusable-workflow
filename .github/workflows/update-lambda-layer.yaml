@@ -37,14 +37,16 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
 
     - name: Get the Latest Lambda Layer
+      shell: bash
       run: |
         latestlambdalayerarn=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')
         echo "latestlambdalayer=$latestlambdalayerarn" >> $GITHUB_ENV
-        echo $latestlambdalayerarn
+        echo $latestlambdalayer
 
     - name: Update the Lambda Layer
+      shell: bash
       env:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
-        echo "HI this is new"
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')
+        echo $latestlambdalayer
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latestlambdalayer
