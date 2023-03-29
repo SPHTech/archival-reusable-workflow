@@ -23,7 +23,7 @@ on:
         description: "Lambda layer zip file"
         type: string
         required: false
-        default: GPLv3'
+        default: 'GPLv3'
       code_runtime:
         description: "Code Runtime for the Layer"
         type: string
