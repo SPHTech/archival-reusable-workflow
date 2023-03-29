@@ -48,5 +48,5 @@ jobs:
       env:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
-        echo $latestlambdalayer
+        echo $(aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latestlambdalayer)
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latestlambdalayer
