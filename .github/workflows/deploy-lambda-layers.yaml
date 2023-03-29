@@ -19,15 +19,19 @@ on:
         description: "Lambda function layer description"
         type: string
         required: true
-      zip_file:
-        description: "Lambda layer zip file"
-        type: string
-        required: true
       license_info:
         description: "Lambda layer zip file"
         type: string
         required: false
         default: GPLv3'
+      code_runtime:
+        description: "Code Runtime for the Layer"
+        type: string
+        required: true
+      runtime_version:
+        description: "code Runtime version"
+        type: string
+        required: true
       working_directory:
         description: "Working Directory of the project"
         type: string
@@ -60,6 +64,13 @@ jobs:
         role-to-assume: ${{ inputs.aws_iam_role_arn }}
         role-session-name: gh-actions
         aws-region: ${{ inputs.aws_account_region }}
+
+    - uses: actions/setup-python@v4
+      name: Install Python and pip
+      with:
+        python-version: ${{ inputs.runtime_version }}
+        cache: 'pip'
+      if: ${{ inputs.code_runtime == 'python' }}
 
     - name: Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
