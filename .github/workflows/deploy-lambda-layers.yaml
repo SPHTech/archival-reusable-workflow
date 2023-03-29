@@ -90,5 +90,5 @@ jobs:
         --description "${{ inputs.layer_description }}" \
         --license-info ${{ inputs.license_info }} \
         --zip-file fileb://${{ inputs.local_build_path }} \
-        --compatible-runtimes ${{ inputs.compatible_runtimes }}
-        --compatible-architectures "${{ inputs.compatible_architecture }}"
+        --compatible-runtimes ${{ inputs.compatible_runtimes }} \
+        --compatible-architectures ${{ inputs.compatible_architecture }}
