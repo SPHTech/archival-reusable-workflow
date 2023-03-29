@@ -61,8 +61,8 @@ jobs:
     - name: Extract version from package.json
       id: jqdata
       run: |
-        sudo apt-get update
-        sudo apt-get install jq
+        # sudo apt-get update
+        # sudo apt-get install jq
         LAMBDA_ENV_INPUT_VAR='${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
         echo $LAMBDA_ENV_INPUT_VAR
         env_var=$(jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {$LAMBDA_ENV_INPUT_VAR})}")
