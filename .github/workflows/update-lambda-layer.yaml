@@ -47,4 +47,4 @@ jobs:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
         echo $latestlambdalayer
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $latestlambdalayer
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')
