@@ -12,10 +12,6 @@ on:
         type: string
         required: false
         default: 'ap-southeast-1'
-      aws_account_id:
-        description: "AWS account Id"
-        type: string
-        required: true
       aws_iam_role_arn:
         description: "AWS ARN IAM Role ARN"
         type: string
@@ -37,14 +33,6 @@ on:
         description: "AWS Lambda comma Separate list of environment variable"
         type: string
         required: false
-      working_directory:
-        description: "Working Directory of the project"
-        type: string
-        required: true
-      zip_file:
-        type: string
-        description: 'Zip File to deploy'
-        required: true
 
 jobs:
   deploy-lambda:
@@ -62,14 +50,12 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
 
     - name: Deploy to Lambda
-      working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-code --function-name ${{ inputs.lambda_function_name }} \
         --s3-bucket=${{inputs.s3_bucket}} --s3-key=${{inputs.s3_key}} \
         --architectures=${{inputs.lambda_architecture}} --region=${{inputs.aws_account_region}}
 
     - name: Update Lambda Environment Variables
-      working-directory: ${{ inputs.working_directory }}
       run: |
        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
        --environment "Variables={${{ inputs.lambda_environment }}}" --role ${{ inputs.aws_iam_role_arn }}

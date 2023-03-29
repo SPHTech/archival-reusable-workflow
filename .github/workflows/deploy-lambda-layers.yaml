@@ -1,12 +1,8 @@
-name: 'Deploy AWS Lambda Using Zip'
+name: 'Deploy AWS Lambda Layer'
 
 on:
   workflow_call:
     inputs:
-      lambda_function_name:
-        description: "Lambda name to be deployed"
-        type: string
-        required: true
       aws_account_region:
         description: "AWS account region"
         type: string
@@ -15,6 +11,23 @@ on:
         description: "AWS ARN IAM Role"
         type: string
         required: true
+      layer_name:
+        description: "Lambda layer function name"
+        type: string
+        required: true
+      layer_description:
+        description: "Lambda function layer description"
+        type: string
+        required: true
+      zip_file:
+        description: "Lambda layer zip file"
+        type: string
+        required: true
+      license_info:
+        description: "Lambda layer zip file"
+        type: string
+        required: false
+        default: GPLv3'
       working_directory:
         description: "Working Directory of the project"
         type: string
@@ -28,14 +41,14 @@ on:
         description: " Add the local build path"
         type: string
         required: true
-      lambda_environment_var:
-        description: "AWS Lambda comma Separate list of environment variable"
+      compatible_runtimes:
+        description: "Provide the compatible runtimes for the layers (space-separated if we need to define multiple runtimes)"
         type: string
-        required: false
+        required: true
 
 jobs:
   deploy-lambda:
-    name:  Deploy to Lambda
+    name: Deploy Lambda Layers
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -48,19 +61,17 @@ jobs:
         role-session-name: gh-actions
         aws-region: ${{ inputs.aws_account_region }}
 
-    - name: Build the Lambda
+    - name: Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
 
-    - name: Deploy to Lamnda
-      working-directory: ${{ inputs.working_directory }}
+    - name: Deploy to Lambda Layer
+      working-directory:  ${{ inputs.working_directory }}
       run: |
-        aws lambda update-function-code --function-name=${{inputs.lambda_function_name}} --zip-file=fileb://${{ inputs.local_build_path }}
-
-    - name: Update Lambda Environment Variables
-      working-directory: ${{ inputs.working_directory }}
-      run: |
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
-        --environment "Variables={${{ inputs.lambda_environment_var }}}" --role ${{ inputs.aws_iam_role_arn }}
-      if: ${{ inputs.lambda_environment_var !='' }}
+        aws lambda publish-layer-version \
+        --layer-name  ${{ inputs.layer_name }} \
+        --description  ${{ inputs.layer_description }} \
+        --license-info ${{ inputs.license_info }} \
+        --zip-file=fileb://${{ inputs.local_build_path }} \
+        --compatible-runtimes ${{ inputs.compatible_runtimes }}
