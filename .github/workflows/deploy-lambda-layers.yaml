@@ -49,6 +49,11 @@ on:
         description: "Provide the compatible runtimes for the layers (space-separated if we need to define multiple runtimes)"
         type: string
         required: true
+      compatible_architecture:
+        description: "Provide the compatible architecture for the layers"
+        type: string
+        required: false
+        default: 'x86_64'
 
 jobs:
   deploy-lambda:
@@ -81,8 +86,9 @@ jobs:
       working-directory:  ${{ inputs.working_directory }}
       run: |
         aws lambda publish-layer-version \
-        --layer-name  ${{ inputs.layer_name }} \
-        --description  ${{ inputs.layer_description }} \
+        --layer-name ${{ inputs.layer_name }} \
+        --description ${{ inputs.layer_description }} \
         --license-info ${{ inputs.license_info }} \
-        --zip-file=fileb://${{ inputs.local_build_path }} \
+        --zip-file fileb://${{ inputs.local_build_path }} \
         --compatible-runtimes ${{ inputs.compatible_runtimes }}
+        --compatible-architectures ${{ inputs.compatible_architecture }}

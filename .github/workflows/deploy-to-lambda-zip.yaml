@@ -56,7 +56,7 @@ jobs:
     - name: Deploy to Lamnda
       working-directory: ${{ inputs.working_directory }}
       run: |
-        aws lambda update-function-code --function-name=${{inputs.lambda_function_name}} --zip-file=fileb://${{ inputs.local_build_path }}
+        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }}
 
     - name: Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
