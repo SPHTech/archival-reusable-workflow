@@ -59,7 +59,7 @@ jobs:
         aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }}
 
     - name: Extract version from package.json
-      id: jqdata
+      shell: bash
       run: |
         LAMBDA_ENV_INPUT_VAR='${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
         echo $LAMBDA_ENV_INPUT_VAR
