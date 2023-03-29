@@ -58,15 +58,22 @@ jobs:
       run: |
         aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }}
 
+    - name: Get the Lambda Enviroment variables
+      shell: bash
+      run: |
+        echo '${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
+      if: ${{ inputs.lambda_environment_var !='' }}
+
+
     - name: Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
       shell: bash
       env:
         env_var: ${{ env.env_var }}
       run: |
-        LAMBDA_ENV_INPUT_VAR=echo '${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
-        echo $LAMBDA_ENV_INPUT_VAR
-        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name archival-batch-classified-merge-ads-dev | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {$LAMBDA_ENV_INPUT_VAR})}")
+        # LAMBDA_ENV_INPUT_VAR="${'${{ inputs.lambda_environment_var }}'//\"/\\\"}"
+        # echo $LAMBDA_ENV_INPUT_VAR
+        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name archival-batch-classified-merge-ads-dev | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${{ inputs.lambda_environment_var }}})}")
         echo $UPDATED_ENVIRONMNET_VARIABLES
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
         --environment ${UPDATED_ENVIRONMNET_VARIABLES}
