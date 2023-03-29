@@ -1,0 +1,45 @@
+name: 'Update Lambda Layer'
+
+on:
+  workflow_call:
+    inputs:
+      aws_account_region:
+        description: "AWS account region"
+        type: string
+        required: true
+      aws_iam_role_arn:
+        description: "AWS ARN IAM Role"
+        type: string
+        required: true
+      layer_name:
+        description: "Lambda layer function name"
+        type: string
+        required: true
+      lambda_function_name:
+        description: "Lambda function name to be deployed"
+        type: string
+        required: true
+
+
+jobs:
+  get-lambda-layer:
+    name: Update Lambda Layers
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{ inputs.aws_iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+
+    - name: Get the Latest Lambda Layer
+      run: |
+        echo "latest-lambda-layer=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }}  --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')" >> $GITHUB_ENV
+
+    - name: Update the Lambda Layer
+      run: |
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers  $latest-lambda-layer
