@@ -59,14 +59,15 @@ jobs:
         aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }}
 
     - name: Extract version from package.json
-      uses: sergeysova/jq-action@v2
       id: jqdata
-      with:
-        cmd: |
-          LAMBDA_ENV_INPUT_VAR='${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
-          echo $LAMBDA_ENV_INPUT_VAR
-          env_var=jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {$LAMBDA_ENV_INPUT_VAR})}"
-          echo "env_var=$env_var" >> $GITHUB_ENV
+      run: |
+        sudo apt-get update
+        sudo apt-get install jq
+        LAMBDA_ENV_INPUT_VAR='${{ inputs.lambda_environment_var }}' | sed 's/"/\\"/g'
+        echo $LAMBDA_ENV_INPUT_VAR
+        env_var=$(jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {$LAMBDA_ENV_INPUT_VAR})}")
+        echo "env_var=$env_var" >> $GITHUB_ENV
+        echo $env_var
       if: ${{ inputs.lambda_environment_var !='' }}
 
     - name: Update Lambda Environment Variables
