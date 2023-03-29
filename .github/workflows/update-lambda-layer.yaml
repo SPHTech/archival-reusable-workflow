@@ -41,7 +41,6 @@ jobs:
       run: |
         latestlambdalayerarn=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')
         echo "latestlambdalayer=$latestlambdalayerarn" >> $GITHUB_ENV
-        echo $latestlambdalayer
 
     - name: Update the Lambda Layer
       shell: bash
