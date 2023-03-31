@@ -48,4 +48,6 @@ jobs:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
         echo ${{ env.latestlambdalayer }}
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers ${{ env.latestlambdalayer }}
+        get_all_existing_layers=$(aws lambda get-function --function-name ${{ inputs.lambda_function_name }} | jq .Configuration.Layers[].Arn)
+        echo $get_all_existing_layers
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $get_all_existing_layers ${{ env.latestlambdalayer }}
