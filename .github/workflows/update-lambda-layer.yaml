@@ -48,6 +48,17 @@ jobs:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
         echo ${{ env.latestlambdalayer }}
-        get_all_existing_layers=$(aws lambda get-function --function-name ${{ inputs.lambda_function_name }} | jq .Configuration.Layers[].Arn)
+        modified_layer=${{ env.latestlambdalayer }}
+        get_all_existing_layers=$(aws lambda get-function --function-name archival-batch-classified-merge-ads-dev | jq .Configuration.Layers[].Arn)
         echo $get_all_existing_layers
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $get_all_existing_layers ${{ env.latestlambdalayer }}
+        layer=''
+        for rec in $get_all_existing_layers;
+        do
+          if [[ $rec == *"${{ inputs.layer_name }}"* ]]; then
+            layer+=" $modified_layer "
+          else
+             layer+=" ${rec} "
+          fi
+        done
+        layer_mod=$(echo $layer | sed 's/"//g')
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod
