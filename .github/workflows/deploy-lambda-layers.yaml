@@ -77,6 +77,10 @@ jobs:
         cache: 'pip'
       if: ${{ inputs.code_runtime == 'python' }}
 
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      if: ${{ inputs.code_runtime == 'python' }}
+
     - name: Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
       run: |
