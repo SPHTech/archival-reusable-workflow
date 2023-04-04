@@ -49,7 +49,7 @@ jobs:
       run: |
         echo ${{ env.latestlambdalayer }}
         modified_layer=${{ env.latestlambdalayer }}
-        get_all_existing_layers=$(aws lambda get-function --function-name archival-batch-classified-merge-ads-dev | jq .Configuration.Layers[].Arn)
+        get_all_existing_layers=$(aws lambda get-function --function-name ${{ inputs.lambda_function_name }} | jq .Configuration.Layers[].Arn)
         echo $get_all_existing_layers
         layer=''
         for rec in $get_all_existing_layers;
