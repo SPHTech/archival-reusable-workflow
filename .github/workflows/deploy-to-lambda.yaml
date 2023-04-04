@@ -23,13 +23,26 @@ on:
       build_script_path:
         description: "Adding a build script path"
         type: string
-        required: true
+        required: false
       local_build_path:
         description: " Add the local build path"
         type: string
-        required: true
+        required: false
       lambda_environment_var:
         description: "AWS Lambda comma Separate list of environment variable"
+        type: string
+        required: false
+      s3_bucket:
+        description: "AWS S3 bucket where the lambda zip file is stored"
+        type: string
+        required: false
+      s3_key:
+        description: "AWS S3 key for the lambda zip"
+        type: string
+        required: false
+      lambda_architecture:
+        description: "AWS Lambda architecture"
+        default: 'x86_64'
         type: string
         required: false
 
@@ -52,11 +65,21 @@ jobs:
       working-directory: ${{ inputs.working_directory }}
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
+      if: ${{ inputs.build_script_path !='' }}
 
-    - name: Deploy to Lamnda
+    - name: Deploy to Lambda via zip
       working-directory: ${{ inputs.working_directory }}
       run: |
-        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }}
+        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }} --architectures=${{inputs.lambda_architecture}}
+      if: ${{ inputs.local_build_path !=''  }}
+
+    - name: Deploy to Lambda via S3
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        aws lambda update-function-code --function-name ${{ inputs.lambda_function_name }} \
+                --s3-bucket=${{inputs.s3_bucket}} --s3-key=${{inputs.s3_key}} \
+                --architectures=${{inputs.lambda_architecture}} --region=${{inputs.aws_account_region}}
+      if: ${{ (inputs.s3_bucket !='') && (inputs.s3_key !='')  }}
 
     - name: Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
