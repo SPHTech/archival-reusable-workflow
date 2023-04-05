@@ -55,17 +55,19 @@ jobs:
         if [[ ! -z "$lambda_layers" ]]; then
             get_all_existing_layers=$lambda_layers
         else
-            layer+="$modified_layer"
+            layer="$modified_layer"
         fi
         echo $get_all_existing_layers
-        for rec in $get_all_existing_layers;
-        do
-          if [[ $rec == *"${{ inputs.layer_name }}"* ]]; then
-            layer+=" $modified_layer "
-          else
-             layer+=" ${rec} "
-          fi
-        done
+        if [ ${#get_all_existing_layers[@]} -eq 0 ]; then
+          for rec in $get_all_existing_layers;
+          do
+            if [[ $rec == *"${{ inputs.layer_name }}"* ]]; then
+              layer+=" $modified_layer "
+            else
+               layer+=" ${rec} "
+            fi
+          done
+        fi
         layer_mod=$(echo $layer | sed 's/"//g')
-        echo "aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod"
+        echo $layer_mod
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod
