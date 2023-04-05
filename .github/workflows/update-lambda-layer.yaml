@@ -54,6 +54,8 @@ jobs:
         lambda_layers=$(aws lambda get-function --function-name ${{ inputs.lambda_function_name }} | jq .Configuration.Layers[]?.Arn)
         if [[ ! -z "$lambda_layers" ]]; then
             get_all_existing_layers=$lambda_layers
+        else
+            layer+="$modified_layer"
         fi
         echo $get_all_existing_layers
         for rec in $get_all_existing_layers;
