@@ -67,4 +67,5 @@ jobs:
           fi
         done
         layer_mod=$(echo $layer | sed 's/"//g')
+        echo "aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod"
         aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod
