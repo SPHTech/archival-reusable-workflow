@@ -50,7 +50,7 @@ jobs:
         echo ${{ env.latestlambdalayer }}
         modified_layer=${{ env.latestlambdalayer }}
         layer=''
-        lambda_layers=$(aws lambda get-function --function-name archival-batch-classified-merge-ads-dev | jq .Configuration.Layers[]?.Arn)
+        lambda_layers=$(aws lambda get-function --function-name ${{ inputs.lambda_function_name }} | jq .Configuration.Layers[]?.Arn)
         lambda_layers=$(sed -e 's/^"//' -e 's/"$//' <<<"$lambda_layers")
         B="$(cut -d':' -f7 <<<"$modified_layer")"
         B_no=${modified_layer##*:}
