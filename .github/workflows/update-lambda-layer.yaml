@@ -63,6 +63,8 @@ jobs:
               layer+=" $modified_layer "
             elif [[ $B == *"$A" && B_no -lt A_no ]]; then
               layer+=" $rec "
+            elif [[ $layer != *"$B"* ]]; then
+              layer+=" $modified_layer ${rec}"
             else
               layer+=" ${rec} "
             fi
