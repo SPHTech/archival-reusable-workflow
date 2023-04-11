@@ -72,8 +72,11 @@ jobs:
         else
           layer+=" ${modified_layer} "
         fi
-        layer_mod=$(echo $layer | sed 's/"//g')   | xargs -n1 | sort -u | xargs
+        echo "Lambda Layers "
+        layer_mod=$(echo $layer | sed 's/"//g')
         echo $layer_mod
         if [ -n "$layer_mod" ]; then
-          aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod
+          layer_to_be_modified_layer=$(echo "$layer_mod" | awk '{for (i=1;i<=NF;i++) if (!a[$i]++) printf("%s%s",$i,FS)}{printf("\n")}')
+          echo "Layers to be modified : "$layer_to_be_modified_layer
+          aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_to_be_modified_layer
         fi
