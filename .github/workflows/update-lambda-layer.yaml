@@ -74,5 +74,6 @@ jobs:
         fi
         layer_mod=$(echo $layer | sed 's/"//g')   | xargs -n1 | sort -u | xargs
         echo $layer_mod
-        if [ -n "$layer_mod" ]
+        if [ -n "$layer_mod" ]; then
           aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_mod
+        fi
