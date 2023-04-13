@@ -47,6 +47,10 @@ on:
        type: string
        required: false
        default: ''
+    secrets:
+      OAUTH_TOKEN:
+        description: Github Token for accessing other dependency private repo
+        required: false
 
 jobs:
   trivy-scan:
@@ -87,7 +91,7 @@ jobs:
 
     - name: Build an image from Dockerfile
       run: |
-        build_args=''
+        build_args='--build-arg GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }} '
         args=${{ inputs.docker_build_args }}
         for i in ${args//,/ }
         do
