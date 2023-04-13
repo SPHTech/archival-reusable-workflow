@@ -50,7 +50,7 @@ on:
       trivy_format:
         description: "Trivy format to log out the scan"
         type: string
-        default: 'sarif'
+        default: 'table'
         required: false
       upload_to_codeql:
         description: "Upload to CodeQL"
@@ -74,11 +74,11 @@ jobs:
       id: set-vars
       run: |
         if [ ${{ inputs.docker_tag_name }} != "" ]; then
-          echo "file_postfix=docker" >> $GITHUB_OUTPUT
+          echo "file_output=trivy-results-docker.sarif" >> $GITHUB_OUTPUT
         elif [ ${{ inputs.ecr_image_name }} != "" && ${{ inputs.aws_account_id }} != "" ]; then
-          echo "file_postfix=ecr" >> $GITHUB_OUTPUT
+          echo "file_output=trivy-results-ecr.sarif" >> $GITHUB_OUTPUT
         else
-          echo "file_postfix=" >> $GITHUB_OUTPUT
+          echo "file_output=" >> $GITHUB_OUTPUT
         fi
       shell: bash
 
@@ -96,7 +96,7 @@ jobs:
       with:
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
         format: ${{ inputs.trivy_format }}
-        output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
+        output: ${{ steps.set-vars.outputs.file_output }}
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
 
@@ -117,7 +117,7 @@ jobs:
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         format: ${{ inputs.trivy_format }}
-        output: ''
+        output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         ignore-unfixed: false
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
@@ -126,5 +126,5 @@ jobs:
     - name: Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v2
       with:
-        sarif_file: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
+        sarif_file: ${{ steps.set-vars.outputs.file_output }}
       if: ${{ inputs.upload_to_codeql }}
