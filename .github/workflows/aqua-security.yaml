@@ -117,7 +117,7 @@ jobs:
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         format: ${{ inputs.trivy_format }}
-#        output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
+        output: ''
         ignore-unfixed: false
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
