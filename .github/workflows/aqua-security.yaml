@@ -89,15 +89,28 @@ jobs:
         output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
-    - name: Build an image from Dockerfile
-      run: |
-        build_args='--build-arg GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }} '
-        args='${{ inputs.docker_build_args }}'
-        IFS=$'\n'
-        for line in $args; do build_args+="--build-arg $line "; done
-        echo docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
-        docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
+
+    - name: Docker Build and Push
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ${{ inputs.docker_file }}
+        tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        build-args: |
+          GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
+          ${{ inputs.docker_build_args }}
+        push: true
       if: ${{ inputs.docker_tag_name !='' }}
+
+#    - name: Build an image from Dockerfile
+#      run: |
+#        build_args='--build-arg GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }} '
+#        args='${{ inputs.docker_build_args }}'
+#        IFS=$'\n'
+#        for line in $args; do build_args+="--build-arg $line "; done
+#        echo docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
+#        docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
+#      if: ${{ inputs.docker_tag_name !='' }}
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
