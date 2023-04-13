@@ -116,7 +116,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
-        format: 'table'
+        format: 'json'
         exit-code: '1'
         output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
         ignore-unfixed: true
