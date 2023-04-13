@@ -99,7 +99,7 @@ jobs:
         build-args: |
           GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
           ${{ inputs.docker_build_args }}
-        push: true
+        push: false
       if: ${{ inputs.docker_tag_name !='' }}
 
 #    - name: Build an image from Dockerfile
