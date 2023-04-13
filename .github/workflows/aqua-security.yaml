@@ -112,16 +112,6 @@ jobs:
         push: false
       if: ${{ inputs.docker_tag_name !='' }}
 
-#    - name: Build an image from Dockerfile
-#      run: |
-#        build_args='--build-arg GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }} '
-#        args='${{ inputs.docker_build_args }}'
-#        IFS=$'\n'
-#        for line in $args; do build_args+="--build-arg $line "; done
-#        echo docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
-#        docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
-#      if: ${{ inputs.docker_tag_name !='' }}
-
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
