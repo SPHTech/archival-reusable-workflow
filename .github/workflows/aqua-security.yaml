@@ -1,0 +1,115 @@
+name: 'Trivy Aqua Security Reusable workflow'
+
+on:
+  workflow_call:
+    inputs:
+      docker_file:
+        description: Name of the dockerfile
+        type: string
+        default: ./Dockerfile
+        required: false
+      docker_tag_name:
+        description: Provide the docker tag names
+        type: string
+        default: ''
+        required: false
+      docker_tag_version:
+         description: Provide the docker tag names
+         type: string
+         default: 'latest'
+         required: false
+      docker_build_args:
+        description: "Commas separated list of build args with key value (example: ENVIRONMENT=dev,PROFILE=dev )"
+        type: string
+        required: false
+        default: ''
+      ecr_image_name:
+        description: ECR repo image to scan
+        type: string
+        required: false
+      ecr_tag_version:
+        description: ECR repo tag version to scan
+        type: string
+        required: false
+        default: 'latest'
+      aws_account_id:
+        description: "AWS account ID"
+        type: string
+        required: false
+        default: ''
+      aws_account_region:
+        description: "AWS account region"
+        type: string
+        required: false
+        default: ''
+      aws_iam_role_arn:
+       description: "AWS ARN IAM Role"
+       type: string
+       required: false
+       default: ''
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set Variable
+      id: set-vars
+      run: |
+        if [ ${{ inputs.docker_tag_name }} != "" ]; then
+          echo "file_postfix=docker" >> $GITHUB_OUTPUT
+        elif [ ${{ inputs.ecr_image_name }} != "" && ${{ inputs.aws_account_id }} != "" ]; then
+          echo "file_postfix=ecr" >> $GITHUB_OUTPUT
+        else
+          echo "file_postfix=" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+
+    - name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{ inputs.aws_iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
+        format: 'sarif'
+        output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
+      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
+
+    - name: Build an image from Dockerfile
+      run: |
+        build_args=''
+        args=${{ inputs.docker_build_args }}
+        for i in ${args//,/ }
+        do
+          build_args+="--build-arg $i "
+        done
+        echo "File Postfix :: "${{ steps.set-vars.outputs.file_postfix }}
+        docker build -f ${{ inputs.docker_file }} -t ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }} $build_args --no-cache .
+      if: ${{ inputs.docker_tag_name !='' }}
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        format: 'table'
+        exit-code: '1'
+        output: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+      if: ${{ inputs.docker_tag_name !='' }}
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: trivy-results-${{ steps.set-vars.outputs.file_postfix }}.sarif
