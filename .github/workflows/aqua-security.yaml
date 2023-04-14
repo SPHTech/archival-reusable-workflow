@@ -89,7 +89,7 @@ jobs:
         role-to-assume: ${{ inputs.aws_iam_role_arn }}
         role-session-name: gh-actions
         aws-region: ${{ inputs.aws_account_region }}
-      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
+#      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
