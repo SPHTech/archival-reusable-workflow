@@ -65,7 +65,9 @@ on:
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
