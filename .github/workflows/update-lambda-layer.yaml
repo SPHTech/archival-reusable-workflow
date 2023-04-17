@@ -104,7 +104,7 @@ jobs:
         latestlambdalayer: ${{ env.latestlambdalayer }}
       run: |
         lambda_function_names=${{ inputs.lambda_function_names_to_update }}
-        lambda_layers_name=${{ inputs.layer_name }}
+        lambda_layers_name="${{ inputs.layer_name }}"
         while IFS= read -r lambda ;do
           lambda_layers=$(aws lambda get-function --function-name $lambda | jq .Configuration.Layers[]?.Arn)
           lambda_layers_arr=$(sed -e 's/^"//' -e 's/"$//' <<<"$lambda_layers")
