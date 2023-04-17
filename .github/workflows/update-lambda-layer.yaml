@@ -124,7 +124,7 @@ jobs:
                   fi
                 done
                 if [ $count == 0 ]; then
-                  modified_layers+="$latestlambdalayerarn "
+                  modified_layers+="${{ env.latestlambdalayer }} "
                 fi
             else
               modified_layers=$latestlambdalayerarn
