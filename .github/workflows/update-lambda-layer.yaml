@@ -109,19 +109,24 @@ jobs:
           lambda_layers_arr=$(sed -e 's/^"//' -e 's/"$//' <<<"$lambda_layers")
           if [ -n "$lambda_layers" ]; then
               modified_layers=''
+              count=0
               for rec in $lambda_layers_arr
               do
                 if [[ "$rec" == *"$lambda_layers_name"* ]]; then
                   modified_layers+="${{ env.latestlambdalayer }} "
+                  ((count=count+1))
                 else
                   modified_layers+="$rec "
                 fi
               done
-             if [ -n "$modified_layers" ]; then
-                modified_layers=$(echo $modified_layers | sed 's/"//g')
-                echo "Layers to be modified : "$modified_layers
-                aws lambda update-function-configuration --function-name $lambda --layers $modified_layers
-             fi
+              if [ $count == 0 ]; then
+                modified_layers+="$latestlambdalayerarn "
+              fi
+          else
+            modified_layers=$latestlambdalayerarn
           fi
+          modified_layers=$(echo $modified_layers | sed 's/"//g')
+          echo "Layers to be modified : "$modified_layers
+          aws lambda update-function-configuration --function-name $lambda --layers $modified_layers
         done <<< "$lambda_function_names"
       if: ${{ (inputs.lambda_function_names_to_update !='') && (inputs.lambda_function_name =='') }}
