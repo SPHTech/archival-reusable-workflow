@@ -24,6 +24,12 @@ on:
         multiple lambdas need to be updated with common layers, 'Multi-line string')"
         type: string
         required: false
+        default: ''
+      lambda_layer_update_speciific_version:
+         description: "Lambda layer version to update"
+         type: string
+         required: false
+         default: ''
 
 
 jobs:
@@ -45,6 +51,10 @@ jobs:
       shell: bash
       run: |
         latestlambdalayerarn=$(aws lambda list-layer-versions --layer-name ${{ inputs.layer_name }} --region ${{ inputs.aws_account_region }} --query 'LayerVersions[0].LayerVersionArn')
+        if [ -n "${{ inputs.lambda_layer_update_speciific_version }}" ]; then
+          lambda_layer_part_name=$(echo "$latestlambdalayerarn" | cut -f -7  -d":")
+          latestlambdalayerarn="${lambda_layer_part_name}:${{ inputs.lambda_layer_update_speciific_version }}"\"
+        fi
         echo "latestlambdalayer=$latestlambdalayerarn" >> $GITHUB_ENV
 
     - name: Update the Lambda Layer
@@ -85,3 +95,33 @@ jobs:
           echo "Layers to be modified : "$layer_to_be_modified_layer
           aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} --layers $layer_to_be_modified_layer
         fi
+      if: ${{ (inputs.lambda_function_names_to_update =='') && (inputs.lambda_function_name !='') }}
+
+    - name: Update the common Lambda Layer to all the Lambdas
+      shell: bash
+      env:
+        latestlambdalayer: ${{ env.latestlambdalayer }}
+      run: |
+        lambda_function_names=${{ inputs.lambda_function_names_to_update }}
+        lambda_layers_name=${{ inputs.layer_name }}
+        while IFS= read -r lambda ;do
+          lambda_layers=$(aws lambda get-function --function-name $lambda | jq .Configuration.Layers[]?.Arn)
+          lambda_layers_arr=$(sed -e 's/^"//' -e 's/"$//' <<<"$lambda_layers")
+          if [ -n "$lambda_layers" ]; then
+              modified_layers=''
+              for rec in $lambda_layers_arr
+              do
+                if [[ "$rec" == *"$lambda_layers_name"* ]]; then
+                  modified_layers+="${{ env.latestlambdalayer }} "
+                else
+                  modified_layers+="$rec "
+                fi
+              done
+             if [ -n "$modified_layers" ]; then
+                modified_layers=$(echo $modified_layers | sed 's/"//g')
+                echo "Layers to be modified : "$modified_layers
+                aws lambda update-function-configuration --function-name $lambda --layers $modified_layers
+             fi
+          fi
+        done <<< "$lambda_function_names"
+      if: ${{ (inputs.lambda_function_names_to_update !='') && (inputs.lambda_function_name =='') }}
