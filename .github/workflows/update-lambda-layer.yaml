@@ -127,7 +127,7 @@ jobs:
                   modified_layers+="${{ env.latestlambdalayer }} "
                 fi
             else
-              modified_layers=$latestlambdalayerarn
+              modified_layers=${{ env.latestlambdalayer }}
             fi
             modified_layers=$(echo $modified_layers | sed 's/"//g')
             echo "Layers to be modified : "$modified_layers
