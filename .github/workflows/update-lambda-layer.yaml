@@ -128,7 +128,8 @@ jobs:
           fi
           modified_layers=$(echo $modified_layers | sed 's/"//g')
           echo "Layers to be modified : "$modified_layers
-          if [ -n "$lambda" ]; then
+          if [ -n "$modified_layers" ]; then
+            echo "Lambdas : "$lambda
             aws lambda update-function-configuration --function-name $lambda --layers $modified_layers
           fi
         done <<< "$lambda_function_names"
