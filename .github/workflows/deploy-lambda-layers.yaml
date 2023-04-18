@@ -89,6 +89,13 @@ jobs:
       uses: snok/install-poetry@v1
       if: ${{ inputs.code_runtime == 'python' }}
 
+    - name: Install Nodejs
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.runtime_version }}
+        cache: 'npm'
+      if: ${{ inputs.code_runtime == 'nodejs' }}
+
     - name: Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
       run: |
