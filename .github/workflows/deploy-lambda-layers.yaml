@@ -94,6 +94,7 @@ jobs:
       with:
         node-version: ${{ inputs.runtime_version }}
         cache: 'npm'
+        cache-dependency-path: ${{ format('{0}/{1}', inputs.working_directory ,'package-lock.json') }}
       if: ${{ inputs.code_runtime == 'nodejs' }}
 
     - name: Build the Lambda Layer
