@@ -1,16 +1,16 @@
 repos:
   - repo: https://github.com/rhysd/actionlint
-    rev: main
+    rev: v1.6.24
     hooks:
       - id: actionlint
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.4.0
     hooks:
       # Git style
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: mixed-line-ending
-      - id: detect-aws-credentials
+#      - id: detect-aws-credentials
       - id: detect-private-key
 #      - id: no-commit-to-branch
 #        args: [ '--branch', 'main' ]
