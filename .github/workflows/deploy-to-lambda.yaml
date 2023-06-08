@@ -40,8 +40,8 @@ on:
         description: "AWS S3 key for the lambda zip"
         type: string
         required: false
-      ecr_image:
-        description: "AWS S3 key for the lambda zip"
+      ecr_image_uri:
+        description: "ECR Image URI to deploy to lambda"
         type: string
         required: false
       lambda_architecture:
@@ -74,7 +74,7 @@ jobs:
     - name: Deploy to Lambda via zip
       working-directory: ${{ inputs.working_directory }}
       run: |
-        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }} --architectures=${{inputs.lambda_architecture}}
+        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }} --architectures=${{ inputs.lambda_architecture}} --region ${{ inputs.aws_account_region}}
       if: ${{ inputs.local_build_path !=''  }}
 
     - name: Deploy to Lambda via S3
@@ -84,6 +84,12 @@ jobs:
                 --s3-bucket=${{inputs.s3_bucket}} --s3-key=${{inputs.s3_key}} \
                 --architectures=${{inputs.lambda_architecture}} --region=${{inputs.aws_account_region}}
       if: ${{ (inputs.s3_bucket !='') && (inputs.s3_key !='')  }}
+
+    - name: Deploy to Lambda with ECR Image
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --image-uri ${{ inputs.ecr_image_uri }}  --architectures=${{inputs.lambda_architecture}} --region ${{ inputs.aws_account_region}}
+      if: ${{ inputs.ecr_image_uri !=''  }}
 
     - name: Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
