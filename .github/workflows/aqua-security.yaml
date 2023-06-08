@@ -72,6 +72,11 @@ on:
         type: string
         default: ""
         required: false
+      environment:
+        type: string
+        description: "The environment variable for the workflow"
+        required: false
+        default: "dev"
     secrets:
       OAUTH_TOKEN:
         description: Github Token for accessing other dependency private repo
@@ -80,8 +85,10 @@ on:
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
+      id-token: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
