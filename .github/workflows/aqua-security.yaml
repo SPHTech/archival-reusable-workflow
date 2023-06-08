@@ -116,14 +116,14 @@ jobs:
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
     - name: Docker Build and Push
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v4
       with:
         context: .
         file: ${{ inputs.docker_file }}
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         build-args: |
-          GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
           ${{ inputs.docker_build_args }}
+          GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
         push: false
       if: ${{ inputs.docker_tag_name !='' }}
 
