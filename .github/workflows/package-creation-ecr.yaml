@@ -44,6 +44,10 @@ on:
         required: true
       NEWRELIC_PHP_LICENSE_KEY:
         required: true
+    outputs:
+      ecr_image_tag:
+        description: "Output the image tag"
+        value: ${{ jobs.publish-to-ecr.outputs.image_tag }}
 
 
 jobs:
@@ -54,6 +58,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      image_tag: ${{ steps.set_image_tag.outputs.IMAGE_TAG }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -71,8 +77,9 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Setup image tag
+      id: set_image_tag
       run: |
-        echo "IMAGE_TAG=${GITHUB_SHA::8}" >> "${GITHUB_ENV}"
+        echo "IMAGE_TAG=${GITHUB_SHA::8}" >> "${GITHUB_ENV}"  >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Set up Docker Buildx

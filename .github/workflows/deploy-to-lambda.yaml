@@ -40,6 +40,10 @@ on:
         description: "AWS S3 key for the lambda zip"
         type: string
         required: false
+      ecr_image:
+        description: "AWS S3 key for the lambda zip"
+        type: string
+        required: false
       lambda_architecture:
         description: "AWS Lambda architecture"
         default: 'x86_64'
