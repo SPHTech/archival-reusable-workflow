@@ -73,10 +73,10 @@ on:
         default: ""
         required: false
       environment:
-        type: string
         description: "The environment variable for the workflow"
-        required: false
+        type: string
         default: "dev"
+        required: false
     secrets:
       OAUTH_TOKEN:
         description: Github Token for accessing other dependency private repo
