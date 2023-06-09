@@ -104,7 +104,7 @@ jobs:
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
         push: true
-        provenance:
+        provenance: ${{ inputs.provenance_attestation }}
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
       if: inputs.tag_mutability
 
@@ -121,5 +121,6 @@ jobs:
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
         push: true
+        provenance: ${{ inputs.provenance_attestation }}
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
       if: inputs.tag_mutability != true
