@@ -32,6 +32,11 @@ on:
         type: string
         required: false
         default: 'latest'
+      deploy_env:
+        description: "The environment variable for the workflow"
+        type: string
+        required: false
+        default: 'dev'
       aws_account_id:
         description: "AWS account ID"
         type: string
@@ -72,11 +77,6 @@ on:
         type: string
         default: ""
         required: false
-      env:
-        description: "The environment variable for the workflow"
-        type: string
-        required: false
-        default: 'dev'
     secrets:
       OAUTH_TOKEN:
         description: Github Token for accessing other dependency private repo
@@ -85,7 +85,7 @@ on:
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.env }}
+    environment: ${{ inputs.deploy_env }}
     permissions:
       contents: read
       id-token: write
