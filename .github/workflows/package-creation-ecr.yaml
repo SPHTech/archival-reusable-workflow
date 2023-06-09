@@ -35,6 +35,11 @@ on:
         type: string
         default: ""
         required: false
+      provenance_attestation:
+        description: "Generate provenance attestation for the build"
+        type: boolean
+        default: true
+        required: false
       environment:
         type: string
         description: "The environment variable for the workflow"
@@ -99,6 +104,7 @@ jobs:
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
         push: true
+        provenance:
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
       if: inputs.tag_mutability
 
