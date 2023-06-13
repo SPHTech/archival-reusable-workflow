@@ -67,7 +67,7 @@ on:
         type: string
         default: 'docker'
         required: false
-      context_path:
+      context:
         description: "Context Path directory of the project"
         type: string
         required: false
@@ -130,7 +130,7 @@ jobs:
     - name: Docker Build and Push
       uses: docker/build-push-action@v4
       with:
-        context: ${{ inputs.context_path }}
+        context: ${{ inputs.context }}
         file: ${{ inputs.docker_file }}
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         no-cache: true
