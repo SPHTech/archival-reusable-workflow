@@ -128,6 +128,7 @@ jobs:
         context: .
         file: ${{ inputs.docker_file }}
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        no-cache: true
         build-args: |
           ${{ inputs.docker_build_args }}
           GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
