@@ -67,6 +67,11 @@ on:
         type: string
         default: 'docker'
         required: false
+      context_path:
+        description: "Context Path directory of the project"
+        type: string
+        required: false
+        default: '.'
       scan_reference:
         description: "Scan reference(e.g. /github/workspace/ or .)"
         type: string
@@ -125,7 +130,7 @@ jobs:
     - name: Docker Build and Push
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ${{ inputs.context_path }}
         file: ${{ inputs.docker_file }}
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         no-cache: true
