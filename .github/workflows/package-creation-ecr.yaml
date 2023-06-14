@@ -15,6 +15,11 @@ on:
         description: "ECR repository name"
         type: string
         required: true
+      docker_no_cache:
+        description: "Docker No cache on build"
+        type: boolean
+        required: false
+        default: false
       context:
         description: "Source context - path location to docker build"
         type: string
@@ -103,6 +108,7 @@ jobs:
           GITHUB_OAUTH_TOKEN=${{ secrets.TOKEN }}
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
+        no-cache: ${{ inputs.docker_no_cache }}
         push: true
         provenance: ${{ inputs.provenance_attestation }}
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
@@ -120,6 +126,7 @@ jobs:
           GITHUB_OAUTH_TOKEN=${{ secrets.TOKEN }}
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
+        no-cache: ${{ inputs.docker_no_cache }}
         push: true
         provenance: ${{ inputs.provenance_attestation }}
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}

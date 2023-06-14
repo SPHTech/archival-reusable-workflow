@@ -23,6 +23,11 @@ on:
         type: string
         required: false
         default: ''
+      docker_no_cache:
+        description: "Docker No cache on build"
+        type: boolean
+        required: false
+        default: false
       ecr_image_name:
         description: ECR repo image to scan
         type: string
@@ -133,7 +138,7 @@ jobs:
         context: ${{ inputs.context }}
         file: ${{ inputs.docker_file }}
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
-        no-cache: true
+        no-cache: ${{ inputs.docker_no_cache }}
         build-args: |
           ${{ inputs.docker_build_args }}
           GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
