@@ -100,7 +100,7 @@ jobs:
     - name: Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
       run: |
-        bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
+        bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }} ${{ inputs.runtime_version }}
       if: ${{ inputs.build_script_path !='' }}
 
     - name: Deploy to Lambda Layer via Zip
