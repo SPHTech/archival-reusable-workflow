@@ -74,17 +74,17 @@ on:
 
 jobs:
   deploy-to-s3:
-    name: Deploy to S3 and Invalidate Cloudfront Cache
+    name: 🚀 Deploy to S3 and Invalidate Cloudfront Cache
     runs-on: ubuntu-latest
     environment: ${{ inputs.environmet_repository }}
     permissions:
       contents: read
       id-token: write
     steps:
-    - name: Checkout
+    - name: ⏳ Checkout
       uses: actions/checkout@v3
 
-    - name: Configure aws credentials
+    - name: 🔩 Configure aws credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-skip-session-tagging: true
@@ -92,24 +92,24 @@ jobs:
         role-session-name: gh-actions
         aws-region: ${{ inputs.aws_account_region }}
 
-    - name: Set up Node.js
+    - name: 💾 Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 14
         check-latest: true
       if:  ${{ inputs.language == 'nodejs' }}
 
-    - name: Install dependencies
+    - name: 📥 Install dependencies
       env:
         CI: false
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.s3_build_script }}
 
-    - name: Deploy to S3
+    - name: 🚀 Deploy to S3
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.s3_deploy_script }} ${{  inputs.s3_frontend_bucket }} ${{  inputs.s3_admin_bucket }}
 
-    - name: Invalidate CloudFront cache for Frontend
+    - name: 🚮️ Invalidate CloudFront cache for Frontend
       uses: chetan/invalidate-cloudfront-action@v2.4
       env:
         DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_FRONTEND_ID }}

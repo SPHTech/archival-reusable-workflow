@@ -100,10 +100,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-    - name: Checkout code
+    - name: ⏳ Checkout code
       uses: actions/checkout@v3
 
-    - name: Set Variable
+    - name: ⚙ ️Set Variable
       id: set-vars
       run: |
         if [ "${{ inputs.docker_tag_name }}" != "" ]; then
@@ -115,7 +115,7 @@ jobs:
         fi
       shell: bash
 
-    - name: Configure aws credentials
+    - name: 🔩 Configure aws credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-skip-session-tagging: true
@@ -124,7 +124,7 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
 
-    - name: Run Trivy vulnerability scanner
+    - name: 🚀 Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
@@ -132,7 +132,7 @@ jobs:
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
-    - name: Docker Build and Push
+    - name: 🛠️ Docker Build and Push
       uses: docker/build-push-action@v4
       with:
         context: ${{ inputs.context }}
@@ -145,7 +145,7 @@ jobs:
         push: false
       if: ${{ inputs.docker_tag_name !='' }}
 
-    - name: Run Trivy vulnerability scanner for docker images
+    - name: 🚀 Run Trivy vulnerability scanner for docker images
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
@@ -156,7 +156,7 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
       if: ${{ inputs.docker_tag_name !='' }}
 
-    - name: Run Trivy vulnerability scanner in repo mode
+    - name: 🚀 Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
@@ -168,7 +168,7 @@ jobs:
         skip-dirs: ${{ inputs.skip_directories }}
       if: ${{ inputs.scan_type == 'fs' }}
 
-    - name: Upload Trivy scan results to GitHub Security tab
+    - name: 📁 Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v2
       with:
         sarif_file: ${{ steps.set-vars.outputs.file_output }}

@@ -52,12 +52,13 @@ on:
 
 jobs:
   deploy-lambda:
-    name:  Deploy to Lambda
+    name:  🚀 Deploy to Lambda
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: ⏳ Checkout
+      uses: actions/checkout@v3
 
-    - name: Configure aws credentials
+    - name: 🔩 Configure aws credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-skip-session-tagging: true
@@ -65,19 +66,19 @@ jobs:
         role-session-name: gh-actions
         aws-region: ${{ inputs.aws_account_region }}
 
-    - name: Build the Lambda
+    - name: 🛠️ Build the Lambda
       working-directory: ${{ inputs.working_directory }}
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
       if: ${{ inputs.build_script_path !='' }}
 
-    - name: Deploy to Lambda via zip
+    - name: 📦 Package Lambda via zip
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --zip-file fileb://${{ inputs.local_build_path }} --architectures=${{ inputs.lambda_architecture}} --region ${{ inputs.aws_account_region}}
       if: ${{ inputs.local_build_path !=''  }}
 
-    - name: Deploy to Lambda via S3
+    - name: 🚀 Deploy to Lambda via S3
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-code --function-name ${{ inputs.lambda_function_name }} \
@@ -85,13 +86,13 @@ jobs:
                 --architectures=${{inputs.lambda_architecture}} --region=${{inputs.aws_account_region}}
       if: ${{ (inputs.s3_bucket !='') && (inputs.s3_key !='')  }}
 
-    - name: Deploy to Lambda with ECR Image
+    - name: 🚀 Deploy to Lambda with ECR Image
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda update-function-code --function-name ${{inputs.lambda_function_name}} --image-uri ${{ inputs.ecr_image_uri }}  --architectures=${{inputs.lambda_architecture}} --region ${{ inputs.aws_account_region}}
       if: ${{ inputs.ecr_image_uri !=''  }}
 
-    - name: Update Lambda Environment Variables
+    - name: 🔄 Update Lambda Environment Variables
       working-directory: ${{ inputs.working_directory }}
       shell: bash
       env:

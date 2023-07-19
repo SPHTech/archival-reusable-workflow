@@ -65,12 +65,13 @@ on:
 
 jobs:
   deploy-lambda:
-    name: Deploy Lambda Layers
+    name: 🚀 Deploy Lambda Layers
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: ⏳ Checkout
+      uses: actions/checkout@v3
 
-    - name: Configure aws credentials
+    - name: 🔩Configure aws credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-skip-session-tagging: true
@@ -79,17 +80,17 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
 
     - uses: actions/setup-python@v4
-      name: Install Python and pip
+      name: 📥 Install Python and pip
       with:
         python-version: ${{ inputs.runtime_version }}
         cache: 'pip'
       if: ${{ inputs.code_runtime == 'python' }}
 
-    - name: Install Poetry
+    - name: 📥 Install Poetry
       uses: snok/install-poetry@v1
       if: ${{ inputs.code_runtime == 'python' }}
 
-    - name: Install Nodejs
+    - name: 📥 Install Nodejs
       uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.runtime_version }}
@@ -97,13 +98,13 @@ jobs:
         cache-dependency-path: ${{ format('{0}/{1}', inputs.working_directory ,'package-lock.json') }}
       if: ${{ inputs.code_runtime == 'nodejs' }}
 
-    - name: Build the Lambda Layer
+    - name: 🛠️ Build the Lambda Layer
       working-directory: ${{ inputs.working_directory }}
       run: |
         bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }} ${{ inputs.runtime_version }}
       if: ${{ inputs.build_script_path !='' }}
 
-    - name: Deploy to Lambda Layer via Zip
+    - name: 📦 Package Lambda Layer via Zip
       working-directory:  ${{ inputs.working_directory }}
       run: |
         aws lambda publish-layer-version \
@@ -115,7 +116,7 @@ jobs:
         --compatible-architectures ${{ inputs.compatible_architecture }}
       if: ${{ inputs.local_build_path !='' }}
 
-    - name: Deploy to Lambda Layer via S3
+    - name: 🚀 Deploy to Lambda Layer via S3
       working-directory: ${{ inputs.working_directory }}
       run: |
         aws lambda publish-layer-version \
