@@ -1,0 +1,49 @@
+name: 'Execute python tests'
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: 'Current working directory'
+        type: string
+        required: true
+      install-redis:
+        description: 'Parameter to check the whether redis is needed or not'
+        type: boolean
+        default: false
+
+jobs:
+  execute-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install uvicorn
+          pip install httpx
+          pip install botocore
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Create test
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          touch test.db
+
+      - name: Setup redis
+        uses: supercharge/redis-github-action@1.2.0
+        with:
+          redis-version: 6
+        if: ${{ inputs.install-redis == true }}
+
+      - name: Execute tests via script
+        run: |
+          sh ./.github/actions/scripts/check.sh ${{ inputs.working-directory }}/tests.py
