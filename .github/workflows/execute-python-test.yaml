@@ -33,11 +33,6 @@ jobs:
           pip install botocore
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Create test
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          touch test.db
-
       - name: Setup redis
         uses: supercharge/redis-github-action@1.2.0
         with:
