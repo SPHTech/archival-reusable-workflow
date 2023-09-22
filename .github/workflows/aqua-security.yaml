@@ -87,6 +87,11 @@ on:
         type: string
         default: ""
         required: false
+      timeout:
+        description: "Scan timeout duration"
+        type: string
+        required: false
+        default: 5m0s
     secrets:
       OAUTH_TOKEN:
         description: Github Token for accessing other dependency private repo
@@ -160,6 +165,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
+        timeout: ${{ inputs.timeout }}
         scan-ref: ${{ inputs.scan_reference }}
         ignore-unfixed: false
         format: ${{ inputs.trivy_format }}
