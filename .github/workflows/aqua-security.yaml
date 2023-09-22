@@ -134,6 +134,7 @@ jobs:
       with:
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
         format: ${{ inputs.trivy_format }}
+        timeout: ${{ inputs.timeout }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
@@ -154,6 +155,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        timeout: ${{ inputs.timeout }}
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         ignore-unfixed: false
