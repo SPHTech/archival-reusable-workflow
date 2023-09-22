@@ -82,10 +82,10 @@ jobs:
       id-token: write
     steps:
     - name: ⏳ Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 🔩 Configure aws credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-skip-session-tagging: true
         role-to-assume: ${{  inputs.iam_role_arn }}
