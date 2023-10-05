@@ -52,7 +52,8 @@ on:
 jobs:
   deploy-to-ecs:
     name: 🚀 Deploy to ECS
-    runs-on: ${{ inputs.runners }}
+    runs-on:
+      ${{ inputs.runners }}
     permissions:
       contents: read
       id-token: write

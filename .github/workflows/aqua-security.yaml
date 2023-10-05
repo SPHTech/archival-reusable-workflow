@@ -106,7 +106,8 @@ on:
 
 jobs:
   trivy-scan:
-    runs-on: ${{ inputs.runners }}
+    runs-on:
+      ${{ inputs.runners }}
     environment: ${{ inputs.deploy_env }}
     permissions:
       contents: read
