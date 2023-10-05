@@ -11,17 +11,16 @@ on:
         description: 'Parameter to check the whether redis is needed or not'
         type: boolean
         default: false
-      runners:
+      runner_label:
         description: "Add runners for the GHA"
-        default:
-          - self-hosted
-          - platform-eng-ent
+        default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
 
 jobs:
   execute-tests:
-    runs-on: ${{ inputs.runners }}
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
     steps:
       - uses: actions/checkout@v4
 

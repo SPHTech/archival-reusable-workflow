@@ -31,20 +31,18 @@ on:
          type: string
          required: false
          default: ''
-      runners:
-       description: "Add runners for the GHA"
-       default:
-         - self-hosted
-         - platform-eng-ent
-       type: string
-       required: false
+      runner_label:
+        description: "Add runners for the GHA"
+        default: '["self-hosted","platform-eng-ent"]'
+        type: string
+        required: false
 
 
 jobs:
   get-lambda-layer:
     name: Update Lambda Layers
     runs-on:
-      ${{ inputs.runners }}
+      ${{ fromJSON(inputs.runner_label) }}
     steps:
     - name: ⏳ Checkout repository
       uses: actions/checkout@v4

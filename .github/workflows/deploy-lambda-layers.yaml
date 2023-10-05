@@ -62,18 +62,17 @@ on:
         type: string
         required: false
         default: 'x86_64'
-      runners:
+      runner_label:
         description: "Add runners for the GHA"
-        default:
-          - self-hosted
-          - platform-eng-ent
+        default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
 
 jobs:
   deploy-lambda:
     name: 🚀 Deploy Lambda Layers
-    runs-on: ${{ inputs.runners }}
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
     steps:
     - name: ⏳ Checkout
       uses: actions/checkout@v4

@@ -40,11 +40,9 @@ on:
         type: boolean
         default: true
         required: false
-      runners:
+      runner_label:
         description: "Add runners for the GHA"
-        default:
-          - self-hosted
-          - platform-eng-ent
+        default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
 
@@ -53,7 +51,7 @@ jobs:
   deploy-to-ecs:
     name: 🚀 Deploy to ECS
     runs-on:
-      ${{ inputs.runners }}
+      ${{ fromJSON(inputs.runner_label) }}
     permissions:
       contents: read
       id-token: write

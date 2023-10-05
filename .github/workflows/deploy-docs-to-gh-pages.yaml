@@ -5,16 +5,14 @@ on:
     inputs:
       runner_label:
         description: "Add runners for the GHA"
-        default:
-          - self-hosted
-          - platform-eng-ent
+        default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
 
 jobs:
   build:
     runs-on:
-      ${{ inputs.runner_label }}
+      ${{ fromJSON(inputs.runner_label) }}
     env:
       MDBOOK_VERSION: 0.4.21
     steps:

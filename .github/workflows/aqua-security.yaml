@@ -92,11 +92,9 @@ on:
         type: string
         required: false
         default: 5m0s
-      runners:
+      runner_label:
         description: "Add runners for the GHA"
-        default:
-          - self-hosted
-          - platform-eng-ent
+        default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
     secrets:
@@ -107,7 +105,7 @@ on:
 jobs:
   trivy-scan:
     runs-on:
-      ${{ inputs.runners }}
+      ${{ fromJSON(inputs.runner_label) }}
     environment: ${{ inputs.deploy_env }}
     permissions:
       contents: read
