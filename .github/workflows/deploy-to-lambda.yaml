@@ -49,11 +49,18 @@ on:
         default: 'x86_64'
         type: string
         required: false
+      runners:
+        description: "Add runners for the GHA"
+        default:
+          - self-hosted
+          - platform-eng-ent
+        type: string
+        required: false
 
 jobs:
   deploy-lambda:
     name:  🚀 Deploy to Lambda
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runners }}
     steps:
     - name: ⏳ Checkout
       uses: actions/checkout@v4

@@ -49,6 +49,13 @@ on:
         type: string
         description: "The environment variable for the workflow"
         required: true
+      runners:
+        description: "Add runners for the GHA"
+        default:
+          - self-hosted
+          - platform-eng-ent
+        type: string
+        required: false
     secrets:
       TOKEN:
         required: true
@@ -63,7 +70,7 @@ on:
 jobs:
   publish-to-ecr:
     name: 🛠️ Build and Publish to ECR
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runners }}
     environment: ${{ inputs.environment }}
     permissions:
       contents: read

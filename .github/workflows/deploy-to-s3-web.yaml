@@ -66,6 +66,13 @@ on:
         default: ap-southeast-1
         type: string
         required: false
+      runners:
+        description: "Add runners for the GHA"
+        default:
+          - self-hosted
+          - platform-eng-ent
+        type: string
+        required: false
     secrets:
       CLOUDFRONT_DISTRIBUTION_FRONTEND_ID:
         required: false
@@ -75,7 +82,7 @@ on:
 jobs:
   deploy-to-s3:
     name: 🚀 Deploy to S3 and Invalidate Cloudfront Cache
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runners }}
     environment: ${{ inputs.environmet_repository }}
     permissions:
       contents: read

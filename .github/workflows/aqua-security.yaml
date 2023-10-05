@@ -92,6 +92,13 @@ on:
         type: string
         required: false
         default: 5m0s
+      runners:
+        description: "Add runners for the GHA"
+        default:
+          - self-hosted
+          - platform-eng-ent
+        type: string
+        required: false
     secrets:
       OAUTH_TOKEN:
         description: Github Token for accessing other dependency private repo
@@ -99,7 +106,7 @@ on:
 
 jobs:
   trivy-scan:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runners }}
     environment: ${{ inputs.deploy_env }}
     permissions:
       contents: read

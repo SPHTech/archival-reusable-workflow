@@ -2,10 +2,18 @@ name: 'Deploy docs to GH pages'
 
 on:
   workflow_call:
+    inputs:
+      runners:
+        description: "Add runners for the GHA"
+        default:
+          - self-hosted
+          - platform-eng-ent
+        type: string
+        required: false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runners }}
     env:
       MDBOOK_VERSION: 0.4.21
     steps:
