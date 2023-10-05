@@ -105,6 +105,12 @@ jobs:
         check-latest: true
       if:  ${{ inputs.language == 'nodejs' }}
 
+    - name: Install AWS CLI
+      run: |
+        python -m pip install --upgrade pip
+        pip install awscli
+      if: contains('self-hosted', ${{ inputs.runner_label }})
+
     - name: 📥 Install dependencies
       env:
         CI: false
