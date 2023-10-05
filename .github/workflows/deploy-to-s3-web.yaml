@@ -80,8 +80,7 @@ on:
 jobs:
   deploy-to-s3:
     name: 🚀 Deploy to S3 and Invalidate Cloudfront Cache
-    runs-on:
-      - ${{ inputs.runner_label }}
+    runs-on: self-hosted
     environment: ${{ inputs.environmet_repository }}
     permissions:
       contents: read
