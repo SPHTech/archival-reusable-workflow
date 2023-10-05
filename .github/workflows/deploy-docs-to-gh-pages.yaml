@@ -3,7 +3,7 @@ name: 'Deploy docs to GH pages'
 on:
   workflow_call:
     inputs:
-      runners:
+      runner_label:
         description: "Add runners for the GHA"
         default:
           - self-hosted
@@ -13,7 +13,8 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ inputs.runners }}
+    runs-on:
+      ${{ inputs.runner_label }}
     env:
       MDBOOK_VERSION: 0.4.21
     steps:
