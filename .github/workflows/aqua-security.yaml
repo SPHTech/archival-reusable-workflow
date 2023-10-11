@@ -158,7 +158,7 @@ jobs:
         build-args: |
           ${{ inputs.docker_build_args }}
           GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
-        push: false
+        push: true
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner for docker images
