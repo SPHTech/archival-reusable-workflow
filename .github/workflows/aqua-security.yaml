@@ -139,7 +139,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
       if: contains('self-hosted', ${{ inputs.runner_label }})
 
-    - name: 🚀 Run Trivy vulnerability scanner
+    - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
