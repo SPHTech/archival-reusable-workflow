@@ -90,7 +90,7 @@ jobs:
       with:
         python-version: ${{ inputs.runtime_version }}
         cache: 'pip'
-      if: ${{ inputs.code_runtime == 'python' || contains('self-hosted', ${{ inputs.runner_label }}) }}
+      if: ${{ inputs.code_runtime == 'python' || contains('self-hosted', inputs.runner_label) }}
 
     - name: Install AWS CLI
       run: |
