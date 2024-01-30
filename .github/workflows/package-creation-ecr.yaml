@@ -138,4 +138,5 @@ jobs:
         push: true
         provenance: ${{ inputs.provenance_attestation }}
         tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+        platforms: linux/amd64,linux/arm64
       if: inputs.tag_mutability != true
