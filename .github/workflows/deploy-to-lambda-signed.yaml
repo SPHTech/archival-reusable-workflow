@@ -93,12 +93,13 @@ jobs:
       if: ${{ inputs.build_script_path !='' }}
 
     - name: Deploy signed code to Lambda
-      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@main
+      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@chore/add-working-directory-input-signed-deploy
       with:
           aws_account_id: ${{ steps.aws-deploy-credentials.outputs.aws-account-id }}
           aws_region: ${{ inputs.aws_account_region}}
           function_name: ${{inputs.lambda_function_name}}
-          zipped_file_name: ${{ inputs.working_directory }}/${{ inputs.local_build_path }}
+          working_directory: ${{ inputs.working_directory }}
+          zipped_file_name: ${{ inputs.local_build_path }}
       if: ${{ inputs.local_build_path !=''  }}
 
     - name: 🔄 Update Lambda Environment Variables
