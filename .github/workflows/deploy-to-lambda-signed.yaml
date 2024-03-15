@@ -99,7 +99,7 @@ jobs:
           aws_region: ${{ inputs.aws_account_region}}
           function_name: ${{inputs.lambda_function_name}}
           working_directory: ${{ inputs.working_directory }}/$(dirname ${{ inputs.local_build_path }})
-          zipped_file_name: $(basename ${{ inputs.local_build_path }})
+          zipped_file_name: bash $(basename ${{ inputs.local_build_path }})
       if: ${{ inputs.local_build_path !=''  }}
 
     - name: 🔄 Update Lambda Environment Variables
