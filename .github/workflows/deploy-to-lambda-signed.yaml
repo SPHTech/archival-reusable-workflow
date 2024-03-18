@@ -93,7 +93,7 @@ jobs:
       if: ${{ inputs.build_script_path !='' }}
 
     - name: Deploy signed code to Lambda
-      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@chore/add-working-directory-input-signed-deploy
+      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@main
       with:
           aws_account_id: ${{ steps.aws-deploy-credentials.outputs.aws-account-id }}
           aws_region: ${{ inputs.aws_account_region}}
