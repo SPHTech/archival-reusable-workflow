@@ -1,0 +1,116 @@
+name: 'Deploy AWS Lambda Using Zip'
+
+on:
+  workflow_call:
+    inputs:
+      lambda_function_name:
+        description: "Lambda name to be deployed"
+        type: string
+        required: true
+      aws_account_region:
+        description: "AWS account region"
+        type: string
+        required: true
+      aws_iam_role_arn:
+        description: "AWS ARN IAM Role"
+        type: string
+        required: true
+      working_directory:
+        description: "Working Directory of the project"
+        type: string
+        required: false
+        default: './'
+      build_script_path:
+        description: "Adding a build script path"
+        type: string
+        required: false
+      local_build_path:
+        description: " Add the local build path"
+        type: string
+        required: false
+      lambda_environment_var:
+        description: "AWS Lambda comma Separate list of environment variable"
+        type: string
+        required: false
+      s3_bucket:
+        description: "AWS S3 bucket where the lambda zip file is stored"
+        type: string
+        required: false
+      s3_key:
+        description: "AWS S3 key for the lambda zip"
+        type: string
+        required: false
+      ecr_image_uri:
+        description: "ECR Image URI to deploy to lambda"
+        type: string
+        required: false
+      lambda_architecture:
+        description: "AWS Lambda architecture"
+        default: 'x86_64'
+        type: string
+        required: false
+      runner_label:
+        description: "Add runners for the GHA"
+        default: '["self-hosted","platform-eng-ent"]'
+        type: string
+        required: false
+
+jobs:
+  deploy-lambda:
+    name:  🚀 Deploy to Lambda
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
+    steps:
+    - name: ⏳ Checkout
+      uses: actions/checkout@v4
+
+    - name: 🔩 Configure aws credentials
+      id: aws-deploy-credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{ inputs.aws_iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+        mask-aws-account-id: 'no'
+
+    - name: Install Python for installing AWS CLI
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+      if: contains('self-hosted', ${{ inputs.runner_label }})
+
+    - name: Install AWS CLI
+      run: |
+        python -m pip install --upgrade pip
+        pip install awscli
+      if: contains('self-hosted', ${{ inputs.runner_label }})
+
+    - name: 🛠️ Build the Lambda
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
+      if: ${{ inputs.build_script_path !='' }}
+
+    - name: Deploy signed code to Lambda
+      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@main
+      with:
+          aws_account_id: ${{ steps.aws-deploy-credentials.outputs.aws-account-id }}
+          aws_region: ${{ inputs.aws_account_region}}
+          function_name: ${{inputs.lambda_function_name}}
+          working_directory: ${{ inputs.working_directory }}/$(dirname ${{ inputs.local_build_path }})
+          zipped_file_name: $(basename ${{ inputs.local_build_path }})
+      if: ${{ inputs.local_build_path !=''  }}
+
+    - name: 🔄 Update Lambda Environment Variables
+      working-directory: ${{ inputs.working_directory }}
+      shell: bash
+      env:
+        env_var: ${{ env.env_var }}
+      run: |
+        # LAMBDA_ENV_INPUT_VAR="${'${{ inputs.lambda_environment_var }}'//\"/\\\"}"
+        # echo $LAMBDA_ENV_INPUT_VAR
+        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name ${{inputs.lambda_function_name}} | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${{ inputs.lambda_environment_var }}})}")
+        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
+        --environment ${UPDATED_ENVIRONMNET_VARIABLES}
+      if: ${{ inputs.lambda_environment_var !='' }}
