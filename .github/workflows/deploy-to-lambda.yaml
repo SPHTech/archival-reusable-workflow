@@ -79,14 +79,10 @@ on:
         description: "DX app category"
         required: false
         type: string
-      dx_api_token:
-        description: "DX API token"
-        required: false
-        type: string
     secrets:
       DX_API_TOKEN:
         description: "DX API Token"
-        required: true
+        required: false
 
 jobs:
   deploy-lambda:
