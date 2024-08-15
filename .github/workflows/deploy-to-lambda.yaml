@@ -71,6 +71,10 @@ on:
         required: false
         default: false
         type: boolean
+      environment:
+        description: "Deployment Environment"
+        required: false
+        type: string
 
 jobs:
   deploy-lambda:
@@ -153,7 +157,6 @@ jobs:
           dx_base_url: ${{ inputs.dx_base_url }}
           dx_api_token: ${{ secrets.DX_API_TOKEN }}
           service: ${{ inputs.dx_service_name }}
-          env: ${{ needs.reusable-workflow-job.outputs.env }}
+          env: ${{ inputs.environment }}
           product_name: ${{ inputs.dx_product_name }}
-          deploy_success: ${{ needs.deploy_function.result == 'success' }}
         if: ${{ inputs.need_to_register_deployment_to_dx }}
