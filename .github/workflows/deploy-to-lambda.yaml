@@ -156,4 +156,4 @@ jobs:
           env: ${{ needs.reusable-workflow-job.outputs.env }}
           product_name: ${{ inputs.dx_product_name }}
           deploy_success: ${{ needs.deploy_function.result == 'success' }}
-        if: ${{ inputs.need_to_register_deployment_to_dx !='' }}
+        if: ${{ inputs.need_to_register_deployment_to_dx }}
