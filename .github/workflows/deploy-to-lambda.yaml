@@ -75,6 +75,10 @@ on:
         description: "Deployment Environment"
         required: false
         type: string
+      dx_app_category:
+        description: "DX app category"
+        required: false
+        type: string
 
 jobs:
   deploy-lambda:
@@ -159,4 +163,5 @@ jobs:
           service: ${{ inputs.dx_service_name }}
           env: ${{ inputs.environment }}
           product_name: ${{ inputs.dx_product_name }}
+          app_category: ${{ inputs.dx_app_category }}
         if: ${{ inputs.need_to_register_deployment_to_dx }}
