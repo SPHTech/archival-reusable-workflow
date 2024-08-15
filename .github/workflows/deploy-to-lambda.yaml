@@ -83,6 +83,10 @@ on:
         description: "DX API token"
         required: false
         type: string
+    secrets:
+      DX_API_TOKEN:
+        description: "DX API Token"
+        required: true
 
 jobs:
   deploy-lambda:
@@ -163,7 +167,7 @@ jobs:
         uses: SPHTech-Platform/deploy-actions/register_deploy_dx@v2
         with:
           dx_base_url: ${{ inputs.dx_base_url }}
-          dx_api_token: ${{ inputs.dx_api_token }}
+          dx_api_token: ${{ secrets.DX_API_TOKEN }}
           service: ${{ inputs.dx_service_name }}
           env: ${{ inputs.environment }}
           product_name: ${{ inputs.dx_product_name }}
