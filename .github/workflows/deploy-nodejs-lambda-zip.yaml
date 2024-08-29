@@ -88,18 +88,11 @@ jobs:
             pip install awscli
         if: contains('self-hosted', ${{ inputs.runner_label }})
 
-      - name: 📦 Zip package to upload
-        working-directory: ${{ inputs.working_directory }}
-        run: |
-          cd dist && zip -r ../lambda.zip .
-          cd .. && zip -r lambda.zip ./node_modules
-          zip -r lambda.zip ./package.json
-
       - name: 🚀 Deploy lambda
         working-directory: ${{ inputs.working_directory }}
         run: |
           aws lambda update-function-code \
             --function-name ${{ inputs.lambda_function_name }} \
-            --zip-file fileb://lambda.zip \
+            --zip-file fileb://dist/lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
             --region ${{ inputs.aws_region }}
