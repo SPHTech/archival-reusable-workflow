@@ -7,7 +7,7 @@ on:
         description: "Environment to deploy to dev & prd"
         required: true
         type: string
-      platform:
+      runner_label:
         description: "Add runners for the GHA"
         default: '["self-hosted","platform-eng-ent"]'
         type: string
