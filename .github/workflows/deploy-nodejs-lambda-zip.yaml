@@ -99,7 +99,7 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
         run: |
           aws lambda update-function-code \
-            --function-name ${{ inputs.lambda_function_name }}-${{ inputs.environment }} \
+            --function-name ${{ inputs.lambda_function_name }} \
             --zip-file fileb://lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
             --region ${{ inputs.aws_region }}
