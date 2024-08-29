@@ -1,0 +1,84 @@
+name: 🚀 Deploy Nodejs Lambda with Zip
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to dev & prd"
+        required: true
+        type: string
+      platform:
+        description: "Add runners for the GHA"
+        default: '["self-hosted","platform-eng-ent"]'
+        type: string
+        required: false
+      lambda_function_name:
+        description: "Lambda name to be deployed"
+        type: string
+        required: true
+      aws_iam_role_arn:
+        description: "AWS ARN IAM Role"
+        type: string
+        required: true
+      aws_region:
+        description: "AWS region"
+        type: string
+        required: true
+      lambda_architecture:
+        description: "AWS Lambda architecture"
+        default: 'x86_64'
+        type: string
+        required: false
+      node_version_file:
+        description: "Path to the .nvmrc file for Node.js version"
+        required: false
+        default: ".nvmrc"
+        type: string
+
+jobs:
+  deploy_zip:
+    name:  🚀 Deploy to Lambda
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: ⏳ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔋 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.node_version_file }}
+          node-version: ${{ env.NODE_VERSION || '18' }}
+
+      - name: 📥 Install dependencies (all)
+        run: |
+          npm install
+
+      - name: 🛠️ Build lambda
+        run: npm run build
+
+      - name: 🔩 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            role-skip-session-tagging: true
+            role-to-assume: ${{ vars.AWS_IAM_ARN || inputs.aws_iam_role_arn }}
+            role-session-name: gh-actions
+            aws-region: ${{ inputs.aws_region }}
+
+      - name: 📦 Zip package to upload
+        run: |
+          cd dist && zip -r ../lambda.zip .
+          cd .. && zip -r lambda.zip ./node_modules
+          zip -r lambda.zip ./package.json
+
+      - name: 🚀 Deploy lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ inputs.lambda_function_name }}-${{ inputs.environment }} \
+            --zip-file fileb://lambda.zip \
+            --architectures=${{ inputs.lambda_architecture }} \
+            --region ${{ inputs.aws_region }}
