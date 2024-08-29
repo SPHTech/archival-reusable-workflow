@@ -34,6 +34,11 @@ on:
         required: false
         default: ".nvmrc"
         type: string
+      working_directory:
+        description: "Working Directory of the project"
+        type: string
+        required: false
+        default: './'
 
 jobs:
   deploy_zip:
@@ -55,10 +60,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION || '18' }}
 
       - name: 📥 Install dependencies (all)
+        working-directory: ${{ inputs.working_directory }}
         run: |
           npm install
 
       - name: 🛠️ Build lambda
+        working-directory: ${{ inputs.working_directory }}
         run: npm run build
 
       - name: 🔩 Configure AWS Credentials
@@ -70,12 +77,14 @@ jobs:
             aws-region: ${{ inputs.aws_region }}
 
       - name: 📦 Zip package to upload
+        working-directory: ${{ inputs.working_directory }}
         run: |
           cd dist && zip -r ../lambda.zip .
           cd .. && zip -r lambda.zip ./node_modules
           zip -r lambda.zip ./package.json
 
       - name: 🚀 Deploy lambda
+        working-directory: ${{ inputs.working_directory }}
         run: |
           aws lambda update-function-code \
             --function-name ${{ inputs.lambda_function_name }}-${{ inputs.environment }} \
