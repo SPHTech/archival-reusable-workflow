@@ -77,16 +77,16 @@ jobs:
             aws-region: ${{ inputs.aws_region }}
 
       - name: Install Python for installing AWS CLI
-          uses: actions/setup-python@v4
-          with:
+        uses: actions/setup-python@v4
+        with:
             python-version: '3.11'
-          if: contains('self-hosted', ${{ inputs.runner_label }})
+        if: contains('self-hosted', ${{ inputs.runner_label }})
 
       - name: Install AWS CLI
-          run: |
+        run: |
             python -m pip install --upgrade pip
             pip install awscli
-          if: contains('self-hosted', ${{ inputs.runner_label }})
+        if: contains('self-hosted', ${{ inputs.runner_label }})
 
       - name: 📦 Zip package to upload
         working-directory: ${{ inputs.working_directory }}
