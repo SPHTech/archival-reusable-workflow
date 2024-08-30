@@ -39,6 +39,31 @@ on:
         type: string
         required: false
         default: './'
+      dx_service_name:
+        description: "Name of the service to register deployment to DX"
+        required: false
+        type: string
+      dx_product_name:
+        description: "Name of the product to register deployment to DX"
+        required: false
+        type: string
+      dx_base_url:
+        description: "DX base URL"
+        required: false
+        type: string
+      need_to_register_deployment_to_dx:
+        description: "Is it needed to register the deployment to DX"
+        required: false
+        default: false
+        type: boolean
+      dx_app_category:
+        description: "DX app category"
+        required: false
+        type: string
+    secrets:
+      DX_API_TOKEN:
+        description: "DX API Token"
+        required: false
 
 jobs:
   deploy_zip:
@@ -96,3 +121,21 @@ jobs:
             --zip-file fileb://dist/lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
             --region ${{ inputs.aws_region }}
+
+  register_deploy_dx:
+    if: ${{ success() || failure() }} # ensures this job runs even on failure
+    needs: [deploy-lambda]
+    runs-on:
+      - self-hosted
+      - platform-eng-ent
+    steps:
+      - name: Register deployment
+        uses: SPHTech-Platform/deploy-actions/register_deploy_dx@v2
+        with:
+          dx_base_url: ${{ inputs.dx_base_url }}
+          dx_api_token: ${{ secrets.DX_API_TOKEN }}
+          service: ${{ inputs.dx_service_name }}
+          env: ${{ inputs.environment }}
+          product_name: ${{ inputs.dx_product_name }}
+          app_category: ${{ inputs.dx_app_category }}
+        if: ${{ inputs.need_to_register_deployment_to_dx }}
