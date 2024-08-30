@@ -1,0 +1,141 @@
+name: 🚀 Deploy Nodejs Lambda with Zip
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to dev & prd"
+        required: true
+        type: string
+      runner_label:
+        description: "Add runners for the GHA"
+        default: '["self-hosted","platform-eng-ent"]'
+        type: string
+        required: false
+      lambda_function_name:
+        description: "Lambda name to be deployed"
+        type: string
+        required: true
+      aws_iam_role_arn:
+        description: "AWS ARN IAM Role"
+        type: string
+        required: true
+      aws_region:
+        description: "AWS region"
+        type: string
+        required: true
+      lambda_architecture:
+        description: "AWS Lambda architecture"
+        default: 'x86_64'
+        type: string
+        required: false
+      node_version_file:
+        description: "Path to the .nvmrc file for Node.js version"
+        required: false
+        default: ".nvmrc"
+        type: string
+      working_directory:
+        description: "Working Directory of the project"
+        type: string
+        required: false
+        default: './'
+      dx_service_name:
+        description: "Name of the service to register deployment to DX"
+        required: false
+        type: string
+      dx_product_name:
+        description: "Name of the product to register deployment to DX"
+        required: false
+        type: string
+      dx_base_url:
+        description: "DX base URL"
+        required: false
+        type: string
+      need_to_register_deployment_to_dx:
+        description: "Is it needed to register the deployment to DX"
+        required: false
+        default: false
+        type: boolean
+      dx_app_category:
+        description: "DX app category"
+        required: false
+        type: string
+    secrets:
+      DX_API_TOKEN:
+        description: "DX API Token"
+        required: false
+
+jobs:
+  deploy_zip:
+    name:  🚀 Deploy to Lambda
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: ⏳ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔋 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.node_version_file }}
+          node-version: ${{ env.NODE_VERSION || '18' }}
+
+      - name: 📥 Install dependencies (all)
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          npm install
+
+      - name: 🛠️ Build lambda
+        working-directory: ${{ inputs.working_directory }}
+        run: npm run build
+
+      - name: 🔩 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            role-skip-session-tagging: true
+            role-to-assume: ${{ inputs.aws_iam_role_arn }}
+            role-session-name: gh-actions
+            aws-region: ${{ inputs.aws_region }}
+
+      - name: Install Python for installing AWS CLI
+        uses: actions/setup-python@v4
+        with:
+            python-version: '3.11'
+        if: contains('self-hosted', ${{ inputs.runner_label }})
+
+      - name: Install AWS CLI
+        run: |
+            python -m pip install --upgrade pip
+            pip install awscli
+        if: contains('self-hosted', ${{ inputs.runner_label }})
+
+      - name: 🚀 Deploy lambda
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ inputs.lambda_function_name }} \
+            --zip-file fileb://dist/lambda.zip \
+            --architectures=${{ inputs.lambda_architecture }} \
+            --region ${{ inputs.aws_region }}
+
+  register_deploy_dx:
+    if: ${{ success() || failure() }} # ensures this job runs even on failure
+    needs: [deploy-lambda]
+    runs-on:
+      - self-hosted
+      - platform-eng-ent
+    steps:
+      - name: Register deployment
+        uses: SPHTech-Platform/deploy-actions/register_deploy_dx@v2
+        with:
+          dx_base_url: ${{ inputs.dx_base_url }}
+          dx_api_token: ${{ secrets.DX_API_TOKEN }}
+          service: ${{ inputs.dx_service_name }}
+          env: ${{ inputs.environment }}
+          product_name: ${{ inputs.dx_product_name }}
+          app_category: ${{ inputs.dx_app_category }}
+        if: ${{ inputs.need_to_register_deployment_to_dx }}
