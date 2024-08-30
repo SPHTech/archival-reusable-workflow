@@ -124,7 +124,7 @@ jobs:
 
   register_deploy_dx:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
-    needs: [deploy-lambda]
+    needs: [deploy_zip]
     runs-on:
       - self-hosted
       - platform-eng-ent
