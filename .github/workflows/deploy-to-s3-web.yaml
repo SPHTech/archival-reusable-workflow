@@ -174,7 +174,7 @@ jobs:
 
   register_deploy_dx:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
-    needs: [deploy-lambda]
+    needs: [deploy-to-s3]
     runs-on:
       - self-hosted
       - platform-eng-ent
