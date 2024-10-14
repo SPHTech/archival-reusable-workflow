@@ -173,9 +173,6 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
       if: ${{ inputs.docker_tag_name !='' }}
 
-    - name: Get current working directory
-      run: pwd
-
     - name: 🚀 Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
       with:
