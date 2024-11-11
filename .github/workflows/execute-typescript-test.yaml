@@ -1,0 +1,35 @@
+name: 🚀 Unit test for Typescript codebase
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: 'Current working directory'
+        type: string
+        required: true
+      runner_label:
+        description: "Add runners for the GHA"
+        default: '["self-hosted","platform-eng-ent"]'
+        type: string
+        required: false
+
+jobs:
+  execute-tests:
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🔋 Setup Node.js
+        working-directory: ${{ inputs.working-directory }}
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: 📥 Install dependencies (all)
+        working-directory: ${{ inputs.working-directory }}
+        run: | npm ci
+
+      - name: 🧪 Run vitest
+        working-directory: ${{ inputs.working-directory }}
+        run: npm test
