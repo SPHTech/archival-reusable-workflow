@@ -28,7 +28,7 @@ jobs:
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
-        run: | npm ci
+        run: npm ci
 
       - name: 🧪 Run vitest
         working-directory: ${{ inputs.working-directory }}
