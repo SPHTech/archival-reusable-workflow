@@ -29,7 +29,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         uses: actions/setup-node@v4
         with:
-          node-version-file: ${{ inputs.node_version_file }}
+            node-version-file: ${{ inputs.node_version_file }}
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
