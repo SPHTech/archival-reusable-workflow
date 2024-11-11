@@ -12,6 +12,11 @@ on:
         default: '["self-hosted","platform-eng-ent"]'
         type: string
         required: false
+      node_version_file:
+        description: "Path to the .nvmrc file for Node.js version"
+        required: false
+        default: ".nvmrc"
+        type: string
 
 jobs:
   execute-tests:
@@ -24,7 +29,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ${{ inputs.node_version_file }}
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
