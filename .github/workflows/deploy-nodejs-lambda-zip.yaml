@@ -101,17 +101,6 @@ jobs:
             role-session-name: gh-actions
             aws-region: ${{ inputs.aws_region }}
 
-      - name: 📥 Install dependencies (production)
-        run: |
-          rm -rf node_modules
-          npm ci --omit=dev
-
-       - name: 📦 Zip package to upload
-         run: |
-           cd dist && zip -r ../lambda.zip .
-           cd .. && zip -r lambda.zip ./node_modules
-           zip -r lambda.zip ./package.json
-
       - name: Install Python for installing AWS CLI
         uses: actions/setup-python@v4
         with:
@@ -129,7 +118,7 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name ${{ inputs.lambda_function_name }} \
-            --zip-file fileb://lambda.zip \
+            --zip-file fileb://dist/lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
             --region ${{ inputs.aws_region }}
 
