@@ -16,14 +16,6 @@ on:
         description: "Lambda name to be deployed"
         type: string
         required: true
-      aws_iam_role_arn:
-        description: "AWS ARN IAM Role"
-        type: string
-        required: true
-      aws_region:
-        description: "AWS region"
-        type: string
-        required: true
       lambda_architecture:
         description: "AWS Lambda architecture"
         default: 'x86_64'
