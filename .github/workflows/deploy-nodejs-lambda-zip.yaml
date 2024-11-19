@@ -75,6 +75,11 @@ jobs:
       id-token: write
 
     steps:
+      - name: Debug environment
+        run: |
+          echo "variables: ${{ toJSON(vars)}}"
+          echo "env: ${{ inputs.env }}"
+
       - name: ⏳ Checkout
         uses: actions/checkout@v4
 
