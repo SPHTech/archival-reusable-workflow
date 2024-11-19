@@ -70,6 +70,7 @@ jobs:
     name:  🚀 Deploy to Lambda
     runs-on:
       ${{ fromJSON(inputs.runner_label) }}
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       id-token: write
@@ -78,6 +79,7 @@ jobs:
       - name: Debug environment
         run: |
           echo "variables: ${{ toJSON(vars)}}"
+          echo "inputs: ${{ toJSON(inputs)}}"
           echo "env: ${{ inputs.env }}"
 
       - name: ⏳ Checkout
@@ -115,9 +117,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
             role-skip-session-tagging: true
-            role-to-assume: ${{ inputs.aws_iam_role_arn }}
+            role-to-assume: ${{ vars.IAM_ROLE_ARN }}
             role-session-name: gh-actions
-            aws-region: ${{ inputs.aws_region }}
+            aws-region: ${{ vars.AWS_REGION }}
 
       - name: Install Python for installing AWS CLI
         uses: actions/setup-python@v4
