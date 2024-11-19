@@ -140,7 +140,7 @@ jobs:
             --function-name ${{ inputs.lambda_function_name }} \
             --zip-file fileb://lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
-            --region ${{ inputs.aws_region }}
+            --region ${{ vars.AWS_REGION }}
 
   register_deploy_dx:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
