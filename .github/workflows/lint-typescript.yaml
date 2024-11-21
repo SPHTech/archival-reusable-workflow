@@ -1,0 +1,45 @@
+name: 🚀 Linting for Typescript codebase
+
+on:
+  workflow_call:
+    inputs:
+      npm-optional-args:
+        description: "Add Extra Optional arguments for NPM"
+        required: false
+        type: string
+        default: ""
+      runner_label:
+        description: "Add runners for the GHA"
+        default: '["platform-eng-ent-v2-dual"]'
+        type: string
+        required: false
+      extra-commands:
+        description: "Extra Bash Command to be passed"
+        required: false
+        type: string
+        default: ""
+      working-directory:
+        description: 'Current working directory'
+        type: string
+        required: true
+
+jobs:
+  lint:
+    runs-on: ${{ fromJSON(inputs.runner_label) }}
+    steps:
+      - name: ⏳ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔋 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: 📥 Install dependencies (all)
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          npm ci ${{ inputs.npm-optional-args }} ; [ ! -z "${{ inputs.extra-commands }}" ] && "${{ inputs.extra-commands }}" || "true"
+
+      - name: 🧪 Run lint
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run lint:ci
