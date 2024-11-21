@@ -16,14 +16,6 @@ on:
         description: "Lambda name to be deployed"
         type: string
         required: true
-      aws_iam_role_arn:
-        description: "AWS ARN IAM Role"
-        type: string
-        required: true
-      aws_region:
-        description: "AWS region"
-        type: string
-        required: true
       lambda_architecture:
         description: "AWS Lambda architecture"
         default: 'x86_64'
@@ -70,11 +62,18 @@ jobs:
     name:  🚀 Deploy to Lambda
     runs-on:
       ${{ fromJSON(inputs.runner_label) }}
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       id-token: write
 
     steps:
+      - name: Debug environment
+        run: |
+          echo "variables: ${{ toJSON(vars)}}"
+          echo "inputs: ${{ toJSON(inputs)}}"
+          echo "env: ${{ inputs.env }}"
+
       - name: ⏳ Checkout
         uses: actions/checkout@v4
 
@@ -110,9 +109,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
             role-skip-session-tagging: true
-            role-to-assume: ${{ inputs.aws_iam_role_arn }}
+            role-to-assume: ${{ vars.IAM_ROLE_ARN }}
             role-session-name: gh-actions
-            aws-region: ${{ inputs.aws_region }}
+            aws-region: ${{ vars.AWS_REGION }}
 
       - name: Install Python for installing AWS CLI
         uses: actions/setup-python@v4
@@ -133,7 +132,7 @@ jobs:
             --function-name ${{ inputs.lambda_function_name }} \
             --zip-file fileb://lambda.zip \
             --architectures=${{ inputs.lambda_architecture }} \
-            --region ${{ inputs.aws_region }}
+            --region ${{ vars.AWS_REGION }}
 
   register_deploy_dx:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
