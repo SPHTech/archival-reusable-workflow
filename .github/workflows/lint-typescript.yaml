@@ -18,10 +18,15 @@ on:
         required: false
         type: string
         default: ""
-      working-directory:
+      working_directory:
         description: 'Current working directory'
         type: string
         required: true
+      node_version_file:
+        description: "Path to the .nvmrc file for Node.js version"
+        required: false
+        default: ".nvmrc"
+        type: string
 
 jobs:
   lint:
@@ -33,13 +38,13 @@ jobs:
       - name: 🔋 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version-file: ${{ inputs.node_version_file }}
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
         run: |
-          npm ci ${{ inputs.npm-optional-args }} ; [ ! -z "${{ inputs.extra-commands }}" ] && "${{ inputs.extra-commands }}" || "true"
+          npm ci
 
       - name: 🧪 Run lint
-        working-directory: ${{ inputs.working-directory }}
+        working-directory: ${{ inputs.working_directory }}
         run: npm run lint:ci
