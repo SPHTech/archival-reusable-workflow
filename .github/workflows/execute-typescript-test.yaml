@@ -58,3 +58,6 @@ jobs:
         env:
           CONTENT_FEED_API_KEY: ${{ secrets.CONTENT_FEED_API_KEY }}
           CAAS_SEARCH_API_KEY: ${{ secrets.CAAS_SEARCH_API_KEY }}
+          TEST_ENV: ${{ inputs.environment || 'dev' }}
+          CONTENT_API_BASE_PATH: ${{ vars.CONTENT_API_BASE_PATH }}
+          CAAS_API_PATH: ${{ vars.CAAS_API_PATH }}
