@@ -148,8 +148,7 @@ jobs:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
     needs: [deploy-lambda]
     runs-on:
-      - self-hosted
-      - platform-eng-ent
+      - platform-eng-ent-v2-dual
     steps:
       - name: Register deployment
         uses: SPHTech-Platform/deploy-actions/register_deploy_dx@v2
