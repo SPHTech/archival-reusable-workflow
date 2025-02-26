@@ -5,7 +5,7 @@ on:
     inputs:
       runner_label:
         description: "Add runners for the GHA"
-        default: '["self-hosted","platform-eng-ent"]'
+        default: '["platform-eng-ent-v2-dual"]'
         type: string
         required: false
 

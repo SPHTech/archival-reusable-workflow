@@ -94,7 +94,7 @@ on:
         default: 5m0s
       runner_label:
         description: "Add runners for the GHA"
-        default: '["self-hosted","platform-eng-ent"]'
+        default: '["platform-eng-ent-v2-dual"]'
         type: string
         required: false
     secrets:
@@ -137,7 +137,7 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      if: contains('self-hosted', ${{ inputs.runner_label }})
+      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
 
     - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
       uses: aquasecurity/trivy-action@master

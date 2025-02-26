@@ -9,7 +9,7 @@ on:
         type: string
       runner_label:
         description: "Add runners for the GHA"
-        default: '["self-hosted","platform-eng-ent"]'
+        default: '["platform-eng-ent-v2-dual"]'
         type: string
         required: false
       lambda_function_name:
@@ -117,13 +117,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
             python-version: '3.11'
-        if: contains('self-hosted', ${{ inputs.runner_label }})
+        if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
 
       - name: Install AWS CLI
         run: |
             python -m pip install --upgrade pip
             pip install awscli
-        if: contains('self-hosted', ${{ inputs.runner_label }})
+        if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
 
       - name: 🚀 Deploy lambda
         working-directory: ${{ inputs.working_directory }}
@@ -138,8 +138,7 @@ jobs:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
     needs: [deploy_zip]
     runs-on:
-      - self-hosted
-      - platform-eng-ent
+      - platform-eng-ent-v2-dual
     steps:
       - name: Register deployment
         uses: SPHTech-Platform/deploy-actions/register_deploy_dx@v2
