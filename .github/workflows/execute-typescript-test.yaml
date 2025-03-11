@@ -21,6 +21,11 @@ on:
         description: "Environment to deploy to dev & prd"
         required: true
         type: string
+      test-type:
+        description: "Type of test"
+        required: true
+        default: unit-test
+        type: string
     secrets:
       CONTENT_FEED_API_KEY:
         description: "CONTENT_FEED_API_KEY"
