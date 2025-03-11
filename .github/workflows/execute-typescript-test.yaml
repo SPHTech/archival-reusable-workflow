@@ -21,6 +21,11 @@ on:
         description: "Environment to deploy to dev & prd"
         required: true
         type: string
+      test-type:
+        description: "Type of test"
+        required: true
+        default: unit-test
+        type: string
     secrets:
       CONTENT_FEED_API_KEY:
         description: "CONTENT_FEED_API_KEY"
@@ -44,6 +49,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 🔩 Configure AWS Credentials
+        if: contains(inputs.test-type, 'e2e-test')
         uses: aws-actions/configure-aws-credentials@v4
         with:
             role-skip-session-tagging: true
