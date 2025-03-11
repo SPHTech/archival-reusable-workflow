@@ -23,7 +23,7 @@ on:
         type: string
       test-type:
         description: "Type of test"
-        required: true
+        required: false
         default: unit-test
         type: string
     secrets:
