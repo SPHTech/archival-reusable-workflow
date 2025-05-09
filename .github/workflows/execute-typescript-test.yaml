@@ -33,6 +33,12 @@ on:
       CAAS_SEARCH_API_KEY:
         description: "CAAS_SEARCH_API_KEY"
         required: false
+      CAAS_SEARCH_API_KEY_DEV:
+        description: "CAAS_SEARCH_API_KEY_DEV"
+        required: false
+      CAAS_SEARCH_API_KEY_STG:
+        description: "CAAS_SEARCH_API_KEY_STG"
+        required: false
 
 jobs:
   execute-tests:
