@@ -52,6 +52,11 @@ on:
         description: "DX app category"
         required: false
         type: string
+      use_plain_node_packaging:
+        description: "Skip install/build if using plain Node.js"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DX_API_TOKEN:
         description: "DX API Token"
@@ -84,15 +89,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION || '18' }}
 
       - name: 📥 Install dependencies (all)
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           npm install
 
       - name: 🛠️ Build lambda
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: npm run build
 
       - name: 📥 Install dependencies (production)
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           rm -rf node_modules
@@ -101,9 +109,13 @@ jobs:
       - name: 📦 Zip package to upload
         working-directory: ${{ inputs.working_directory }}
         run: |
-          cd dist && zip -r ../lambda.zip .
-          cd .. && zip -r lambda.zip ./node_modules
-          zip -r lambda.zip ./package.json
+          if ${{ inputs.use_plain_node_packaging }}; then
+            zip -r lambda.zip .
+          else
+            cd dist && zip -r ../lambda.zip .
+            cd .. && zip -r lambda.zip ./node_modules
+            zip -r lambda.zip ./package.json
+          fi
 
       - name: 🔩 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
