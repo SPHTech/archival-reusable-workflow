@@ -105,17 +105,20 @@ jobs:
         run: |
           rm -rf node_modules
           npm ci --omit=dev
-
-      - name: 📦 Zip package to upload
+      
+      - name: 📦 Zip plain Node.js package to upload
+        if: ${{ inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
-          if [ "${{ inputs.use_plain_node_packaging }}" = "true" ]; then
-            zip -r lambda.zip .
-          else
-            cd dist && zip -r ../lambda.zip .
-            cd .. && zip -r lambda.zip ./node_modules
-            zip -r lambda.zip ./package.json
-          fi
+          zip -r lambda.zip .
+
+      - name: 📦 Zip package to upload
+        if: ${{ !inputs.use_plain_node_packaging }}
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          cd dist && zip -r ../lambda.zip .
+          cd .. && zip -r lambda.zip ./node_modules
+          zip -r lambda.zip ./package.json
 
       - name: 🔩 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
