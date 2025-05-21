@@ -89,13 +89,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION || '18' }}
 
       - name: 📥 Install dependencies (all)
-        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           npm install
 
       - name: 🛠️ Build lambda
-        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: npm run build
 
