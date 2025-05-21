@@ -52,6 +52,11 @@ on:
         description: "DX app category"
         required: false
         type: string
+      use_plain_node_packaging:
+        description: "Skip install/build if using plain Node.js"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DX_API_TOKEN:
         description: "DX API Token"
@@ -84,21 +89,31 @@ jobs:
           node-version: ${{ env.NODE_VERSION || '18' }}
 
       - name: 📥 Install dependencies (all)
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           npm install
 
       - name: 🛠️ Build lambda
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: npm run build
 
       - name: 📥 Install dependencies (production)
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           rm -rf node_modules
           npm ci --omit=dev
+      
+      - name: 📦 Zip plain Node.js package to upload
+        if: ${{ inputs.use_plain_node_packaging }}
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          zip -r lambda.zip .
 
       - name: 📦 Zip package to upload
+        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           cd dist && zip -r ../lambda.zip .
