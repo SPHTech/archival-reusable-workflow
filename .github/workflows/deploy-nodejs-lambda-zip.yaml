@@ -86,7 +86,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ${{ inputs.node_version_file }}
-          node-version: ${{ env.NODE_VERSION || '18' }}
+          node-version: ${{ env.NODE_VERSION || '22' }}
 
       - name: 📥 Install dependencies (all)
         if: ${{ !inputs.use_plain_node_packaging }}
