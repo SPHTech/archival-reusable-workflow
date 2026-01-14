@@ -114,6 +114,18 @@ jobs:
     - name: ⏳ Checkout code
       uses: actions/checkout@v4
 
+    - name: ⚙️ Get current date (for cache busting)
+      id: get-date
+      run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+    - name: 🗄️ Cache Trivy DB
+      uses: actions/cache@v4
+      with:
+        path: .cache/trivy
+        key: ${{ runner.os }}-trivy-${{ steps.get-date.outputs.date }}
+        restore-keys: |
+          ${{ runner.os }}-trivy-
+
     - name: ⚙ ️Set Variable
       id: set-vars
       run: |
@@ -137,8 +149,7 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
-
+      if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
     - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
       uses: aquasecurity/trivy-action@master
       with:
@@ -146,6 +157,7 @@ jobs:
         format: ${{ inputs.trivy_format }}
         timeout: ${{ inputs.timeout }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
+        cache-dir: .cache/trivy
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
     - name: 🛠️ Docker Build and Push
@@ -171,6 +183,7 @@ jobs:
         ignore-unfixed: false
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH,MEDIUM'
+        cache-dir: .cache/trivy
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner in repo mode
@@ -184,11 +197,16 @@ jobs:
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         severity: 'HIGH,CRITICAL,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
-        trivy-config: '--scanners vuln --skip-db-update'
+        scanners: 'vuln'
+        cache-dir: .cache/trivy
       if: ${{ inputs.scan_type == 'fs' }}
 
     - name: 📁 Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
+      # Only run if upload is requested AND the previous scan actually produced a file
+      if: |
+        always() && 
+        inputs.upload_to_codeql == true && 
+        steps.set-vars.outputs.file_output != ''
       with:
         sarif_file: ${{ steps.set-vars.outputs.file_output }}
-      if: ${{ inputs.upload_to_codeql }}
