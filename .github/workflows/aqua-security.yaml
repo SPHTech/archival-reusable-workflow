@@ -186,7 +186,7 @@ jobs:
         cache-dir: .cache/trivy
       if: ${{ inputs.docker_tag_name !='' }}
 
-      # --- Java Setup ---
+    # --- Java Setup ---
     - name: ☕ Setup Java 11
       uses: actions/setup-java@v4
       if: hashFiles('**/pom.xml') != ''
@@ -197,7 +197,9 @@ jobs:
 
     - name: 🛠️ Pre-build Maven dependencies
       if: hashFiles('**/pom.xml') != ''
-      run: mvn install -DskipTests -am -B
+      run: |
+        chmod +x mvnw
+        ./mvnw install -DskipTests -am -B
 
     # --- Node Setup ---
     - name: 🟢 Setup Node.js
