@@ -195,8 +195,6 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'maven'
-        server-id: github
-        settings-path: ${{ github.workspace }}
 
     - name: 🏗️ Install Maven
       if: hashFiles('**/pom.xml') != ''
@@ -207,10 +205,9 @@ jobs:
     - name: 🛠️ Pre-build Maven dependencies
       if: hashFiles('**/pom.xml') != ''
       env:
-        # Using x-access-token ensures the GITHUB_TOKEN/PAT is used for auth
-        GITHUB_USER: x-access-token 
+        GITHUB_USERNAME: x-access-token 
         GITHUB_TOKEN: ${{ secrets.OAUTH_TOKEN }}
-      run: mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml -X -e
+      run: mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml
 
     # --- Node Setup ---
     - name: 🟢 Setup Node.js
