@@ -206,6 +206,8 @@ jobs:
 
     - name: 🛠️ Pre-build Maven dependencies
       if: hashFiles('**/pom.xml') != ''
+      env:
+        GITHUB_TOKEN: ${{ secrets.OAUTH_TOKEN }}
       run: mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml
 
     # --- Node Setup ---
