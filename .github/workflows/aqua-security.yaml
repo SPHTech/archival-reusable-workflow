@@ -195,11 +195,15 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    - name: 🏗️ Install Maven
+      if: hashFiles('**/pom.xml') != ''
+      uses: stCarolas/setup-maven@v5
+      with:
+        maven-version: 3.8.2
+
     - name: 🛠️ Pre-build Maven dependencies
       if: hashFiles('**/pom.xml') != ''
-      run: |
-        chmod +x mvnw
-        ./mvnw install -DskipTests -am -B
+      run: mvn install -DskipTests -am -B
 
     # --- Node Setup ---
     - name: 🟢 Setup Node.js
