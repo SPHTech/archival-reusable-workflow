@@ -186,6 +186,36 @@ jobs:
         cache-dir: .cache/trivy
       if: ${{ inputs.docker_tag_name !='' }}
 
+      # --- Java Setup ---
+    - name: ☕ Setup Java 11
+      uses: actions/setup-java@v4
+      if: hashFiles('**/pom.xml') != ''
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: 🛠️ Pre-build Maven dependencies
+      if: hashFiles('**/pom.xml') != ''
+      run: mvn install -DskipTests -am -B
+
+    # --- Node Setup ---
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      if: hashFiles('**/package.json') != ''
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: 📦 Install Node Dependencies
+      if: hashFiles('**/package.json') != ''
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+
     - name: 🚀 Run Trivy vulnerability scanner in repo mode
       uses: aquasecurity/trivy-action@master
       with:
@@ -196,7 +226,7 @@ jobs:
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         severity: 'HIGH,CRITICAL,MEDIUM'
-        skip-dirs: ${{ inputs.skip_directories }}
+        skip-dirs: "target,node_modules,${{ inputs.skip_directories }}"
         scanners: 'vuln'
         cache-dir: .cache/trivy
       if: ${{ inputs.scan_type == 'fs' }}
