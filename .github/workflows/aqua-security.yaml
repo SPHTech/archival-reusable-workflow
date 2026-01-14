@@ -184,6 +184,7 @@ jobs:
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         severity: 'HIGH,CRITICAL,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
+        trivy-config: '--scanners vuln --skip-db-update'
       if: ${{ inputs.scan_type == 'fs' }}
 
     - name: 📁 Upload Trivy scan results to GitHub Security tab
