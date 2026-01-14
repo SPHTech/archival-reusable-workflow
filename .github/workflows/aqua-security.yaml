@@ -150,6 +150,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
+
       - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
         uses: aquasecurity/trivy-action@master
         with:
@@ -165,6 +166,7 @@ jobs:
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.docker_file }}
+          load: true
           tags: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
           no-cache: ${{ inputs.docker_no_cache }}
           build-args: |
@@ -176,33 +178,30 @@ jobs:
       - name: 🚀 Run Trivy vulnerability scanner for docker images
         uses: aquasecurity/trivy-action@master
         with:
+          scan-type: "image"
           image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
           timeout: ${{ inputs.timeout }}
           format: ${{ inputs.trivy_format }}
           output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-          ignore-unfixed: false
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH,MEDIUM"
           cache-dir: .cache/trivy
         if: ${{ inputs.docker_tag_name !='' }}
 
-      # --- Java Setup ---
       - name: ☕ Setup Java 11
         uses: actions/setup-java@v4
-        if: hashFiles('**/pom.xml') != ''
+        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
         with:
           java-version: "11"
           distribution: "temurin"
           cache: "maven"
 
       - name: 🏗️ Install Maven
-        if: hashFiles('**/pom.xml') != ''
+        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
         uses: stCarolas/setup-maven@v5
         with:
           maven-version: 3.8.2
 
       - name: 🛠️ Pre-build Maven dependencies
-        if: hashFiles('**/pom.xml') != ''
+        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
         env:
           GITHUB_USERNAME: x-access-token
           GITHUB_TOKEN: ${{ secrets.OAUTH_TOKEN }}
@@ -210,24 +209,7 @@ jobs:
           # Use -s to force Maven to use the authenticated settings file
           mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml
 
-      # --- Node Setup ---
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        if: hashFiles('**/package.json') != ''
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - name: 📦 Install Node Dependencies
-        if: hashFiles('**/package.json') != ''
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-      - name: 🚀 Run Trivy vulnerability scanner in repo mode
+      - name: 🚀 Run Trivy in Repo Mode (FS)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "fs"
@@ -244,10 +226,6 @@ jobs:
 
       - name: 📁 Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
-        # Only run if upload is requested AND the previous scan actually produced a file
-        if: |
-          always() && 
-          inputs.upload_to_codeql == true && 
-          steps.set-vars.outputs.file_output != ''
+        if: always() && inputs.upload_to_codeql == true && steps.set-vars.outputs.file_output != ''
         with:
           sarif_file: ${{ steps.set-vars.outputs.file_output }}
