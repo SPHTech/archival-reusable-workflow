@@ -1,4 +1,4 @@
-name: "Trivy Aqua Security Scan for Docker and ECR Reusable workflow"
+name: 'Trivy Aqua Security Scan for Docker and ECR Reusable workflow'
 
 on:
   workflow_call:
@@ -11,18 +11,18 @@ on:
       docker_tag_name:
         description: Provide the docker tag names
         type: string
-        default: ""
+        default: ''
         required: false
       docker_tag_version:
-        description: Provide the docker tag names
-        type: string
-        default: "latest"
-        required: false
+         description: Provide the docker tag names
+         type: string
+         default: 'latest'
+         required: false
       docker_build_args:
         description: "Multi Line separated list of build args with key value"
         type: string
         required: false
-        default: ""
+        default: ''
       docker_no_cache:
         description: "Docker No cache on build"
         type: boolean
@@ -36,31 +36,31 @@ on:
         description: ECR repo tag version to scan
         type: string
         required: false
-        default: "latest"
+        default: 'latest'
       deploy_env:
         description: "The environment variable for the workflow"
         type: string
         required: false
-        default: "dev"
+        default: 'dev'
       aws_account_id:
         description: "AWS account ID"
         type: string
         required: false
-        default: ""
+        default: ''
       aws_account_region:
         description: "AWS account region"
         type: string
         required: false
-        default: ""
+        default: ''
       aws_iam_role_arn:
-        description: "AWS ARN IAM Role"
-        type: string
-        required: false
-        default: ""
+       description: "AWS ARN IAM Role"
+       type: string
+       required: false
+       default: ''
       trivy_format:
         description: "Trivy format to log out the scan"
         type: string
-        default: "table"
+        default: 'table'
         required: false
       upload_to_codeql:
         description: "Upload to CodeQL"
@@ -70,13 +70,13 @@ on:
       scan_type:
         description: "Scan Type to be scanned"
         type: string
-        default: "docker"
+        default: 'docker'
         required: false
       context:
         description: "Context Path directory of the project"
         type: string
         required: false
-        default: "."
+        default: '.'
       scan_reference:
         description: "Scan reference(e.g. /github/workspace/ or .)"
         type: string
@@ -104,128 +104,92 @@ on:
 
 jobs:
   trivy-scan:
-    runs-on: ${{ fromJSON(inputs.runner_label) }}
+    runs-on:
+      ${{ fromJSON(inputs.runner_label) }}
     environment: ${{ inputs.deploy_env }}
     permissions:
       contents: read
-      packages: read
       id-token: write
     steps:
-      - name: ⏳ Checkout code
-        uses: actions/checkout@v4
+    - name: ⏳ Checkout code
+      uses: actions/checkout@v4
 
-      - name: ⚙️ Get current date (for cache busting)
-        id: get-date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+    - name: ⚙ ️Set Variable
+      id: set-vars
+      run: |
+        if [ "${{ inputs.docker_tag_name }}" != "" ]; then
+          echo "file_output=trivy-results-docker.sarif" >> $GITHUB_OUTPUT
+        elif [ "${{ inputs.ecr_image_name }}" != "" ] &&  [ "${{ inputs.aws_account_id }}" != "" ]; then
+          echo "file_output=trivy-results-ecr.sarif" >> $GITHUB_OUTPUT
+        else
+          echo "file_output=trivy-results-fs.sarif" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
 
-      - name: 🗄️ Cache Trivy DB
-        uses: actions/cache@v4
-        with:
-          path: .cache/trivy
-          key: ${{ runner.os }}-trivy-${{ steps.get-date.outputs.date }}
-          restore-keys: |
-            ${{ runner.os }}-trivy-
+    - name: 🔩 Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-skip-session-tagging: true
+        role-to-assume: ${{ inputs.aws_iam_role_arn }}
+        role-session-name: gh-actions
+        aws-region: ${{ inputs.aws_account_region }}
+      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
 
-      - name: ⚙ ️Set Variable
-        id: set-vars
-        run: |
-          if [ "${{ inputs.docker_tag_name }}" != "" ]; then
-            echo "file_output=trivy-results-docker.sarif" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.ecr_image_name }}" != "" ] &&  [ "${{ inputs.aws_account_id }}" != "" ]; then
-            echo "file_output=trivy-results-ecr.sarif" >> $GITHUB_OUTPUT
-          else
-            echo "file_output=trivy-results-fs.sarif" >> $GITHUB_OUTPUT
-          fi
-        shell: bash
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
 
-      - name: 🔩 Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-skip-session-tagging: true
-          role-to-assume: ${{ inputs.aws_iam_role_arn }}
-          role-session-name: gh-actions
-          aws-region: ${{ inputs.aws_account_region }}
-        if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') }}
+    - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
+        format: ${{ inputs.trivy_format }}
+        timeout: ${{ inputs.timeout }}
+        output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
+      if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
+    - name: 🛠️ Docker Build and Push
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.docker_file }}
+        load: true 
+        tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        no-cache: ${{ inputs.docker_no_cache }}
+        build-args: |
+          ${{ inputs.docker_build_args }}
+          GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
+        push: false
+      if: ${{ inputs.docker_tag_name !='' }}
 
-      - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
-          format: ${{ inputs.trivy_format }}
-          timeout: ${{ inputs.timeout }}
-          output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-          cache-dir: .cache/trivy
-        if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
+    - name: 🚀 Run Trivy vulnerability scanner for docker images
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'image'
+        image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        timeout: ${{ inputs.timeout }}
+        format: ${{ inputs.trivy_format }}
+        output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
+        ignore-unfixed: false
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+      if: ${{ inputs.docker_tag_name !='' }}
 
-      - name: 🛠️ Docker Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ${{ inputs.context }}
-          file: ${{ inputs.docker_file }}
-          load: true
-          tags: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
-          no-cache: ${{ inputs.docker_no_cache }}
-          build-args: |
-            ${{ inputs.docker_build_args }}
-            GITHUB_OAUTH_TOKEN=${{ secrets.OAUTH_TOKEN }}
-          push: false
-        if: ${{ inputs.docker_tag_name !='' }}
+    - name: 🚀 Run Trivy vulnerability scanner in repo mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        timeout: ${{ inputs.timeout }}
+        scan-ref: ${{ inputs.scan_reference }}
+        ignore-unfixed: false
+        format: ${{ inputs.trivy_format }}
+        output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
+        severity: 'HIGH,CRITICAL,MEDIUM'
+        skip-dirs: ${{ inputs.skip_directories }}
+      if: ${{ inputs.scan_type == 'fs' && inputs.docker_tag_name == '' }}
 
-      - name: 🚀 Run Trivy vulnerability scanner for docker images
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "image"
-          image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
-          timeout: ${{ inputs.timeout }}
-          format: ${{ inputs.trivy_format }}
-          output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-          cache-dir: .cache/trivy
-        if: ${{ inputs.docker_tag_name !='' }}
-
-      - name: ☕ Setup Java 11
-        uses: actions/setup-java@v4
-        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
-        with:
-          java-version: "11"
-          distribution: "temurin"
-          cache: "maven"
-
-      - name: 🏗️ Install Maven
-        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
-        uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: 3.8.2
-
-      - name: 🛠️ Pre-build Maven dependencies
-        if: hashFiles('**/pom.xml') != '' && inputs.scan_type == 'fs'
-        env:
-          GITHUB_USERNAME: x-access-token
-          GITHUB_TOKEN: ${{ secrets.OAUTH_TOKEN }}
-        run: |
-          # Use -s to force Maven to use the authenticated settings file
-          mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml
-
-      - name: 🚀 Run Trivy in Repo Mode (FS)
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "fs"
-          timeout: ${{ inputs.timeout }}
-          scan-ref: ${{ inputs.scan_reference }}
-          ignore-unfixed: false
-          format: ${{ inputs.trivy_format }}
-          output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-          severity: "HIGH,CRITICAL,MEDIUM"
-          skip-dirs: "target,node_modules,${{ inputs.skip_directories }}"
-          scanners: "vuln"
-          cache-dir: .cache/trivy
-        if: ${{ inputs.scan_type == 'fs' }}
-
-      - name: 📁 Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() && inputs.upload_to_codeql == true && steps.set-vars.outputs.file_output != ''
-        with:
-          sarif_file: ${{ steps.set-vars.outputs.file_output }}
+    - name: 📁 Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.set-vars.outputs.file_output }}
+      if: ${{ always() && inputs.upload_to_codeql && steps.set-vars.outputs.file_output != '' }}
