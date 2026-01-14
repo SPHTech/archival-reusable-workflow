@@ -207,8 +207,10 @@ jobs:
     - name: 🛠️ Pre-build Maven dependencies
       if: hashFiles('**/pom.xml') != ''
       env:
+        # Using x-access-token ensures the GITHUB_TOKEN/PAT is used for auth
+        GITHUB_USER: x-access-token 
         GITHUB_TOKEN: ${{ secrets.OAUTH_TOKEN }}
-      run: mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml
+      run: mvn install -DskipTests -am -B -s ${{ github.workspace }}/settings.xml -X -e
 
     # --- Node Setup ---
     - name: 🟢 Setup Node.js
