@@ -119,7 +119,9 @@ jobs:
         no-cache: ${{ inputs.docker_no_cache }}
         push: true
         provenance: ${{ inputs.provenance_attestation }}
-        tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}, ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
+          ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
       if: inputs.tag_mutability
 
     - name: 🛠️ Build and push Docker immutable image
