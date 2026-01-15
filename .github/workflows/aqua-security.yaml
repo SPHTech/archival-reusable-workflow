@@ -135,6 +135,14 @@ jobs:
           echo "is_maven=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: ☕ Set up JDK 11
+      if: steps.detect_java.outputs.is_maven == 'true'
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: 'maven'
+
     - name: 🛠️ Generate Maven Dependency Tree
       if: steps.detect_java.outputs.is_maven == 'true'
       run: mvn dependency:tree -DoutputFile=dependency-tree.txt
