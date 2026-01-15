@@ -126,6 +126,19 @@ jobs:
         fi
       shell: bash
 
+    - name: 🔍 Detect Java/Maven
+      id: detect_java
+      run: |
+        if [ -f "pom.xml" ]; then
+          echo "is_maven=true" >> $GITHUB_OUTPUT
+        else
+          echo "is_maven=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 🛠️ Generate Maven Dependency Tree
+      if: steps.detect_java.outputs.is_maven == 'true'
+      run: mvn dependency:tree -DoutputFile=dependency-tree.txt
+
     - name: 🔩 Configure aws credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -139,9 +152,18 @@ jobs:
       uses: docker/setup-buildx-action@v3
       if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
 
+    - name: Cache Trivy DB
+      uses: actions/cache@v3
+      with:
+        path: .trivycache
+        key: ${{ runner.os }}-trivy-${{ github.run_id }}
+        restore-keys: |
+          ${{ runner.os }}-trivy-
+
     - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
       uses: aquasecurity/trivy-action@master
       with:
+        cache-dir: .trivycache
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
         format: ${{ inputs.trivy_format }}
         timeout: ${{ inputs.timeout }}
@@ -153,7 +175,6 @@ jobs:
       with:
         context: ${{ inputs.context }}
         file: ${{ inputs.docker_file }}
-        load: true 
         tags:  ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         no-cache: ${{ inputs.docker_no_cache }}
         build-args: |
@@ -165,8 +186,8 @@ jobs:
     - name: 🚀 Run Trivy vulnerability scanner for docker images
       uses: aquasecurity/trivy-action@master
       with:
-        scan-type: 'image'
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        cache-dir: .trivycache
         timeout: ${{ inputs.timeout }}
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
@@ -179,17 +200,19 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
+        cache-dir: .trivycache
         timeout: ${{ inputs.timeout }}
         scan-ref: ${{ inputs.scan_reference }}
         ignore-unfixed: false
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
+        scanners: 'vuln'
         severity: 'HIGH,CRITICAL,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
-      if: ${{ inputs.scan_type == 'fs' && inputs.docker_tag_name == '' }}
+      if: ${{ inputs.scan_type == 'fs' }}
 
     - name: 📁 Upload Trivy scan results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: ${{ steps.set-vars.outputs.file_output }}
-      if: ${{ always() && inputs.upload_to_codeql && steps.set-vars.outputs.file_output != '' }}
+      if: ${{ inputs.upload_to_codeql }}
