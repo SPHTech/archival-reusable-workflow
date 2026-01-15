@@ -143,6 +143,12 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    - name: 🛠️ Set up Maven
+      if: steps.detect_java.outputs.is_maven == 'true'
+      uses: stCarolas/setup-maven@v5
+      with:
+        maven-version: 3.9.6
+
     - name: 🛠️ Generate Maven Dependency Tree
       if: steps.detect_java.outputs.is_maven == 'true'
       run: mvn dependency:tree -DoutputFile=dependency-tree.txt
