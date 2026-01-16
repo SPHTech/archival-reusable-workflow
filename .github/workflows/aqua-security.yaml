@@ -194,7 +194,7 @@ jobs:
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
         scanners: 'vuln,secret'
-        severity: 'HIGH,CRITICAL,MEDIUM'
+        severity: 'CRITICAL,HIGH,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
       if: ${{ inputs.scan_type == 'fs' }}
 
