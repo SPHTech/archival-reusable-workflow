@@ -193,7 +193,7 @@ jobs:
         ignore-unfixed: false
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-        scanners: 'vuln'
+        scanners: 'vuln,secret'
         severity: 'HIGH,CRITICAL,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
       if: ${{ inputs.scan_type == 'fs' }}
