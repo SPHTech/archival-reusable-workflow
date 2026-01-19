@@ -137,11 +137,20 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
+      if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
+
+    - name: Cache Trivy DB
+      uses: actions/cache@v3
+      with:
+        path: .trivycache
+        key: ${{ runner.os }}-trivy-${{ github.run_number }}
+        restore-keys: |
+          ${{ runner.os }}-trivy-
 
     - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
       with:
+        cache-dir: .trivycache
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
         format: ${{ inputs.trivy_format }}
         timeout: ${{ inputs.timeout }}
@@ -162,9 +171,10 @@ jobs:
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner for docker images
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
+        cache-dir: .trivycache
         timeout: ${{ inputs.timeout }}
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
@@ -174,20 +184,22 @@ jobs:
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner in repo mode
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
       with:
         scan-type: 'fs'
+        cache-dir: .trivycache
         timeout: ${{ inputs.timeout }}
         scan-ref: ${{ inputs.scan_reference }}
         ignore-unfixed: false
         format: ${{ inputs.trivy_format }}
         output: ${{ inputs.upload_to_codeql && steps.set-vars.outputs.file_output || '' }}
-        severity: 'HIGH,CRITICAL,MEDIUM'
+        scanners: 'vuln,secret'
+        severity: 'CRITICAL,HIGH,MEDIUM'
         skip-dirs: ${{ inputs.skip_directories }}
       if: ${{ inputs.scan_type == 'fs' }}
 
     - name: 📁 Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: ${{ steps.set-vars.outputs.file_output }}
       if: ${{ inputs.upload_to_codeql }}
