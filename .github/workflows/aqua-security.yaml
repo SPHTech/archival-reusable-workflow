@@ -148,7 +148,7 @@ jobs:
           ${{ runner.os }}-trivy-
 
     - name: 🚀 Run Trivy vulnerability scanner in AWS ECR
-      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+      uses: aquasecurity/trivy-action@22438a435773de8c97dc0958cc0b823c45b064ac
       with:
         cache-dir: .trivycache
         image-ref: ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_account_region }}.amazonaws.com/${{ inputs.ecr_image_name}}:${{ inputs.ecr_tag_version }}
@@ -171,7 +171,7 @@ jobs:
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner for docker images
-      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+      uses: aquasecurity/trivy-action@22438a435773de8c97dc0958cc0b823c45b064ac
       with:
         image-ref: ${{ inputs.docker_tag_name }}:${{ inputs.docker_tag_version }}
         cache-dir: .trivycache
@@ -184,7 +184,7 @@ jobs:
       if: ${{ inputs.docker_tag_name !='' }}
 
     - name: 🚀 Run Trivy vulnerability scanner in repo mode
-      uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+      uses: aquasecurity/trivy-action@22438a435773de8c97dc0958cc0b823c45b064ac
       with:
         scan-type: 'fs'
         cache-dir: .trivycache
