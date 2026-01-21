@@ -84,3 +84,4 @@ jobs:
           CONTENT_API_BASE_PATH: ${{ vars.CONTENT_API_BASE_PATH }}
           CAAS_API_PATH: ${{ vars.CAAS_API_PATH }}
           CONTENT_FEED_LAMBDA_NAME: ${{ vars.CONTENT_FEED_LAMBDA_NAME }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
