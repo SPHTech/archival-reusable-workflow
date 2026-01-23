@@ -39,6 +39,9 @@ on:
       CAAS_SEARCH_API_KEY_STG:
         description: "CAAS_SEARCH_API_KEY_STG"
         required: false
+      SLACK_WEBHOOK_URL:
+        description: "SLACK_WEBHOOK_URL"
+        required: false
 
 jobs:
   execute-tests:
@@ -84,3 +87,4 @@ jobs:
           CONTENT_API_BASE_PATH: ${{ vars.CONTENT_API_BASE_PATH }}
           CAAS_API_PATH: ${{ vars.CAAS_API_PATH }}
           CONTENT_FEED_LAMBDA_NAME: ${{ vars.CONTENT_FEED_LAMBDA_NAME }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
