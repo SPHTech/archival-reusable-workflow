@@ -84,13 +84,13 @@ jobs:
     - name: ⏳ Checkout repository
       uses: actions/checkout@v4
 
-    - id: app-token
-      name: Generate GitHub App Token
-      uses: actions/create-github-app-token@v1
-      with:
-        app-id: ${{ inputs.app_id }}
-        private-key: ${{ secrets.APP_PRIVATE_KEY }}
-        owner: ${{ github.repository_owner }}
+    # - id: app-token
+    #   name: Generate GitHub App Token
+    #   uses: actions/create-github-app-token@v1
+    #   with:
+    #     app-id: ${{ inputs.app_id }}
+    #     private-key: ${{ secrets.APP_PRIVATE_KEY }}
+    #     owner: ${{ github.repository_owner }}
 
     - name: 🔩 configure aws credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -145,7 +145,7 @@ jobs:
         context: ${{ inputs.context }}
         build-args: |
           ${{ inputs.build_args }}
-          GITHUB_OAUTH_TOKEN=${{ steps.app-token.outputs.token }}
+          GITHUB_OAUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
           NEWRELIC_LICENSE_KEY=${{ secrets.NEWRELIC_PHP_LICENSE_KEY }}
         file: ${{ inputs.file }}
         no-cache: ${{ inputs.docker_no_cache }}
