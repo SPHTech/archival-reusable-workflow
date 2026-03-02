@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       working-directory:
-        description: 'Current working directory'
+        description: "Current working directory"
         type: string
         required: true
       runner_label:
@@ -26,6 +26,11 @@ on:
         required: false
         default: unit-test
         type: string
+      package_manager:
+        description: "Package manager to use (npm or pnpm)"
+        required: false
+        default: "npm"
+        type: string
     secrets:
       CONTENT_FEED_API_KEY:
         description: "CONTENT_FEED_API_KEY"
@@ -45,8 +50,7 @@ on:
 
 jobs:
   execute-tests:
-    runs-on:
-      ${{ fromJSON(inputs.runner_label) }}
+    runs-on: ${{ fromJSON(inputs.runner_label) }}
     environment: ${{ inputs.environment }}
     steps:
       - name: Debug environment
@@ -61,23 +65,39 @@ jobs:
         if: contains(inputs.test-type, 'e2e-test')
         uses: aws-actions/configure-aws-credentials@v4
         with:
-            role-skip-session-tagging: true
-            role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-            role-session-name: gh-actions
-            aws-region: ${{ vars.AWS_REGION }}
+          role-skip-session-tagging: true
+          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+          role-session-name: gh-actions
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: 🔋 Setup Node.js
         uses: actions/setup-node@v4
         with:
-            node-version-file: ${{ inputs.node_version_file }}
+          node-version-file: ${{ inputs.node_version_file }}
+
+      - name: 📦 Setup PNPM
+        if: ${{ inputs.package_manager == 'pnpm' }}
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
-        run: npm install
+        run: |
+          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+            pnpm install
+          else
+            npm install
+          fi
 
       - name: 🧪 Run vitest
         working-directory: ${{ inputs.working-directory }}
-        run: npm test
+        run: |
+          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+            pnpm test
+          else
+            npm test
+          fi
         env:
           CONTENT_FEED_API_KEY: ${{ secrets.CONTENT_FEED_API_KEY }}
           CAAS_SEARCH_API_KEY: ${{ secrets.CAAS_SEARCH_API_KEY }}
