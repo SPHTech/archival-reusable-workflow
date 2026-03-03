@@ -31,6 +31,12 @@ on:
         required: false
         default: "npm"
         type: string
+      pnpm_filter:
+        description: "PNPM filter target (e.g. '*-lambda' or 'content-feed-api-lambda')"
+        required: false
+        default: ""
+        type: string
+
     secrets:
       CONTENT_FEED_API_KEY:
         description: "CONTENT_FEED_API_KEY"
@@ -94,7 +100,11 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
-            pnpm test
+            if [ -n "${{ inputs.pnpm_filter }}" ]; then
+              pnpm --filter "${{ inputs.pnpm_filter }}" test
+            else
+              pnpm test
+            fi
           else
             npm test
           fi
