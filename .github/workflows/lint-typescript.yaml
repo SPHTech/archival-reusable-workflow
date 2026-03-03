@@ -19,7 +19,7 @@ on:
         type: string
         default: ""
       working_directory:
-        description: 'Current working directory'
+        description: "Current working directory"
         type: string
         required: true
       node_version_file:
@@ -44,6 +44,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ${{ inputs.node_version_file }}
+
+      - name: 📦 Setup PNPM
+        if: ${{ inputs.package_manager == 'pnpm' }}
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working_directory }}
