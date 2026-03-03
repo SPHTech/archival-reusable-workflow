@@ -27,6 +27,11 @@ on:
         required: false
         default: ".nvmrc"
         type: string
+      package_manager:
+        description: "Package manager to use (npm or pnpm)"
+        required: false
+        default: "npm"
+        type: string
 
 jobs:
   lint:
@@ -43,8 +48,17 @@ jobs:
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working_directory }}
         run: |
-          npm install
+          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+            pnpm install
+          else
+            npm install
+          fi
 
       - name: 🧪 Run lint
         working-directory: ${{ inputs.working_directory }}
-        run: npm run lint:ci
+        run: |
+          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+            pnpm lint:ci
+          else
+            npm run lint:ci
+          fi
