@@ -94,7 +94,7 @@ jobs:
 
       - name: 📦 Setup PNPM
         if: ${{ inputs.package_manager == 'pnpm' }}
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
         with:
           version: 9
 
