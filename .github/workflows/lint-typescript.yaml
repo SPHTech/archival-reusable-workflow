@@ -19,13 +19,18 @@ on:
         type: string
         default: ""
       working_directory:
-        description: 'Current working directory'
+        description: "Current working directory"
         type: string
         required: true
       node_version_file:
         description: "Path to the .nvmrc file for Node.js version"
         required: false
         default: ".nvmrc"
+        type: string
+      package_manager:
+        description: "Package manager to use (npm or pnpm)"
+        required: false
+        default: "npm"
         type: string
 
 jobs:
@@ -40,11 +45,30 @@ jobs:
         with:
           node-version-file: ${{ inputs.node_version_file }}
 
+      - name: 📦 Setup PNPM
+        if: ${{ inputs.package_manager == 'pnpm' }}
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
+        with:
+          version: 9
+
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working_directory }}
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          npm install
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
+            pnpm install
+          else
+            npm install
+          fi
 
       - name: 🧪 Run lint
         working-directory: ${{ inputs.working_directory }}
-        run: npm run lint:ci
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
+        run: |
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
+            pnpm lint:ci
+          else
+            npm run lint:ci
+          fi

@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       working-directory:
-        description: 'Current working directory'
+        description: "Current working directory"
         type: string
         required: true
       runner_label:
@@ -26,6 +26,17 @@ on:
         required: false
         default: unit-test
         type: string
+      package_manager:
+        description: "Package manager to use (npm or pnpm)"
+        required: false
+        default: "npm"
+        type: string
+      pnpm_filter:
+        description: "PNPM filter target (e.g. '*-lambda' or 'content-feed-api-lambda')"
+        required: false
+        default: ""
+        type: string
+
     secrets:
       CONTENT_FEED_API_KEY:
         description: "CONTENT_FEED_API_KEY"
@@ -45,8 +56,7 @@ on:
 
 jobs:
   execute-tests:
-    runs-on:
-      ${{ fromJSON(inputs.runner_label) }}
+    runs-on: ${{ fromJSON(inputs.runner_label) }}
     environment: ${{ inputs.environment }}
     steps:
       - name: Debug environment
@@ -61,23 +71,35 @@ jobs:
         if: contains(inputs.test-type, 'e2e-test')
         uses: aws-actions/configure-aws-credentials@v4
         with:
-            role-skip-session-tagging: true
-            role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-            role-session-name: gh-actions
-            aws-region: ${{ vars.AWS_REGION }}
+          role-skip-session-tagging: true
+          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+          role-session-name: gh-actions
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: 🔋 Setup Node.js
         uses: actions/setup-node@v4
         with:
-            node-version-file: ${{ inputs.node_version_file }}
+          node-version-file: ${{ inputs.node_version_file }}
+
+      - name: 📦 Setup PNPM
+        if: ${{ inputs.package_manager == 'pnpm' }}
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
+        with:
+          version: 9
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
-        run: npm install
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
+        run: |
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
+            pnpm install
+          else
+            npm install
+          fi
 
       - name: 🧪 Run vitest
         working-directory: ${{ inputs.working-directory }}
-        run: npm test
         env:
           CONTENT_FEED_API_KEY: ${{ secrets.CONTENT_FEED_API_KEY }}
           CAAS_SEARCH_API_KEY: ${{ secrets.CAAS_SEARCH_API_KEY }}
@@ -88,3 +110,15 @@ jobs:
           CAAS_API_PATH: ${{ vars.CAAS_API_PATH }}
           CONTENT_FEED_LAMBDA_NAME: ${{ vars.CONTENT_FEED_LAMBDA_NAME }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PKG_MANAGER: ${{ inputs.package_manager }}
+          PNPM_FILTER: ${{ inputs.pnpm_filter }}
+        run: |
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
+            if [ -n "$PNPM_FILTER" ]; then
+              pnpm --filter "$PNPM_FILTER" test
+            else
+              pnpm test
+            fi
+          else
+            npm test
+          fi
