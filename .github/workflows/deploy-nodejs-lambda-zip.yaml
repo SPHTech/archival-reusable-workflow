@@ -101,8 +101,10 @@ jobs:
       - name: 📥 Install dependencies (all)
         if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
             pnpm install
           else
             npm install
@@ -111,8 +113,10 @@ jobs:
       - name: 🛠️ Build lambda
         if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
             pnpm run build
           else
             npm run build

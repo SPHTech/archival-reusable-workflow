@@ -89,8 +89,10 @@ jobs:
 
       - name: 📥 Install dependencies (all)
         working-directory: ${{ inputs.working-directory }}
+        env:
+          PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
             pnpm install
           else
             npm install
@@ -98,16 +100,6 @@ jobs:
 
       - name: 🧪 Run vitest
         working-directory: ${{ inputs.working-directory }}
-        run: |
-          if [ "${{ inputs.package_manager }}" == "pnpm" ]; then
-            if [ -n "${{ inputs.pnpm_filter }}" ]; then
-              pnpm --filter "${{ inputs.pnpm_filter }}" test
-            else
-              pnpm test
-            fi
-          else
-            npm test
-          fi
         env:
           CONTENT_FEED_API_KEY: ${{ secrets.CONTENT_FEED_API_KEY }}
           CAAS_SEARCH_API_KEY: ${{ secrets.CAAS_SEARCH_API_KEY }}
@@ -118,3 +110,15 @@ jobs:
           CAAS_API_PATH: ${{ vars.CAAS_API_PATH }}
           CONTENT_FEED_LAMBDA_NAME: ${{ vars.CONTENT_FEED_LAMBDA_NAME }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PKG_MANAGER: ${{ inputs.package_manager }}
+          PNPM_FILTER: ${{ inputs.pnpm_filter }}
+        run: |
+          if [ "$PKG_MANAGER" == "pnpm" ]; then
+            if [ -n "$PNPM_FILTER" ]; then
+              pnpm --filter "$PNPM_FILTER" test
+            else
+              pnpm test
+            fi
+          else
+            npm test
+          fi
