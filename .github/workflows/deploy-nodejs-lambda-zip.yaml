@@ -125,15 +125,19 @@ jobs:
           rm -rf node_modules
           npm ci --omit=dev
 
-      - name: 📦 Isolate package for deployment (PNPM)
+      - name: 📦 Zip package to upload (PNPM)
         if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'pnpm' }}
         working-directory: ${{ inputs.working_directory }}
         run: |
-          pnpm --filter . deploy --prod ../isolated-lambda
-          cd ../isolated-lambda
-          zip -r ../${{ inputs.working_directory }}/lambda.zip .
+          cd dist && zip -r ../lambda.zip .
 
-      - name: 📦 Zip plain Node.js package to upload
+      - name: 📦 Zip plain Node.js package to upload (PNPM)
+        if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'pnpm' }}
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          zip -r lambda.zip .
+
+      - name: 📦 Zip plain Node.js package to upload (NPM)
         if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'npm' }}
         working-directory: ${{ inputs.working_directory }}
         run: |
