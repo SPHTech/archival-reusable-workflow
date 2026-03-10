@@ -99,7 +99,6 @@ jobs:
           version: 9
 
       - name: 📥 Install dependencies (all)
-        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
@@ -111,7 +110,6 @@ jobs:
           fi
 
       - name: 🛠️ Build lambda
-        if: ${{ !inputs.use_plain_node_packaging }}
         working-directory: ${{ inputs.working_directory }}
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
@@ -123,7 +121,7 @@ jobs:
           fi
 
       - name: 📥 Install dependencies (production) (NPM)
-        if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'npm' }}
+        if: ${{ inputs.package_manager == 'npm' }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           rm -rf node_modules
