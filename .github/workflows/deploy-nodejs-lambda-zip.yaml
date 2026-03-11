@@ -134,13 +134,13 @@ jobs:
           cd dist && zip -r ../lambda.zip .
 
       - name: 📦 Zip plain Node.js package to upload (PNPM)
-        if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'pnpm' }}
+        if: ${{ inputs.use_plain_node_packaging && inputs.package_manager == 'pnpm' }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           zip -r lambda.zip .
 
       - name: 📦 Zip plain Node.js package to upload (NPM)
-        if: ${{ !inputs.use_plain_node_packaging && inputs.package_manager == 'npm' }}
+        if: ${{ inputs.use_plain_node_packaging && inputs.package_manager == 'npm' }}
         working-directory: ${{ inputs.working_directory }}
         run: |
           zip -r lambda.zip .
