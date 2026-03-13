@@ -114,12 +114,16 @@ jobs:
     - name: ⏳ Checkout code
       uses: actions/checkout@v4
 
-    - name: ⚙ ️Set Variable
+    - name: ⚙ Set Variable
       id: set-vars
+      env:
+        DOCKER_TAG_NAME: ${{ inputs.docker_tag_name }}
+        ECR_IMAGE_NAME: ${{ inputs.ecr_image_name }}
+        AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
       run: |
-        if [ "${{ inputs.docker_tag_name }}" != "" ]; then
+        if [ "${DOCKER_TAG_NAME}" != "" ]; then
           echo "file_output=trivy-results-docker.sarif" >> $GITHUB_OUTPUT
-        elif [ "${{ inputs.ecr_image_name }}" != "" ] &&  [ "${{ inputs.aws_account_id }}" != "" ]; then
+        elif [ "${ECR_IMAGE_NAME}" != "" ] &&  [ "${AWS_ACCOUNT_ID}" != "" ]; then
           echo "file_output=trivy-results-ecr.sarif" >> $GITHUB_OUTPUT
         else
           echo "file_output=trivy-results-fs.sarif" >> $GITHUB_OUTPUT
@@ -140,7 +144,7 @@ jobs:
       if: contains(fromJSON(inputs.runner_label), 'platform-eng-ent-v2-dual')
 
     - name: Cache Trivy DB
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .trivycache
         key: ${{ runner.os }}-trivy-${{ github.run_number }}
@@ -158,7 +162,7 @@ jobs:
       if: ${{ (inputs.docker_tag_name =='') && (inputs.ecr_image_name !='') && (inputs.aws_account_id != '') }}
 
     - name: 🛠️ Docker Build and Push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.context }}
         file: ${{ inputs.docker_file }}

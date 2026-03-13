@@ -56,7 +56,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
             pnpm install
           else
             npm install
@@ -67,7 +67,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
             pnpm lint:ci
           else
             npm run lint:ci

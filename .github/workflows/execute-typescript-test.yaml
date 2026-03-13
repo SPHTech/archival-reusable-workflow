@@ -92,7 +92,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
             pnpm install
           else
             npm install
@@ -113,9 +113,9 @@ jobs:
           PKG_MANAGER: ${{ inputs.package_manager }}
           PNPM_FILTER: ${{ inputs.pnpm_filter }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
-            if [ -n "$PNPM_FILTER" ]; then
-              pnpm --filter "$PNPM_FILTER" test
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
+            if [ -n "${PNPM_FILTER}" ]; then
+              pnpm --filter "${PNPM_FILTER}" test
             else
               pnpm test
             fi

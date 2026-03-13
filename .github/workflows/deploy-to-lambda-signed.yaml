@@ -1,4 +1,4 @@
-name: 'Deploy AWS Lambda Using Zip'
+name: "Deploy AWS Lambda Using Zip"
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
         description: "Working Directory of the project"
         type: string
         required: false
-        default: './'
+        default: "./"
       build_script_path:
         description: "Adding a build script path"
         type: string
@@ -46,7 +46,7 @@ on:
         required: false
       lambda_architecture:
         description: "AWS Lambda architecture"
-        default: 'x86_64'
+        default: "x86_64"
         type: string
         required: false
       runner_label:
@@ -86,66 +86,77 @@ on:
 
 jobs:
   deploy-lambda:
-    name:  🚀 Deploy to Lambda
-    runs-on:
-      ${{ fromJSON(inputs.runner_label) }}
+    name: 🚀 Deploy to Lambda
+    runs-on: ${{ fromJSON(inputs.runner_label) }}
     steps:
-    - name: ⏳ Checkout
-      uses: actions/checkout@v4
+      - name: ⏳ Checkout
+        uses: actions/checkout@v4
 
-    - name: 🔩 Configure aws credentials
-      id: aws-deploy-credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-skip-session-tagging: true
-        role-to-assume: ${{ inputs.aws_iam_role_arn }}
-        role-session-name: gh-actions
-        aws-region: ${{ inputs.aws_account_region }}
-        mask-aws-account-id: 'no'
+      - name: 🔩 Configure aws credentials
+        id: aws-deploy-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-skip-session-tagging: true
+          role-to-assume: ${{ inputs.aws_iam_role_arn }}
+          role-session-name: gh-actions
+          aws-region: ${{ inputs.aws_account_region }}
+          mask-aws-account-id: "no"
 
-    - name: Install Python for installing AWS CLI
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
+      - name: Install Python for installing AWS CLI
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+        if: contains(inputs.runner_label, 'platform-eng-ent-v2-dual')
 
-    - name: Install AWS CLI
-      run: |
-        python -m pip install --upgrade pip
-        pip install awscli
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
+      - name: Install AWS CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install awscli
+        if: contains(inputs.runner_label, 'platform-eng-ent-v2-dual')
 
-    - name: 🛠️ Build the Lambda
-      working-directory: ${{ inputs.working_directory }}
-      run: |
-        bash ${GITHUB_WORKSPACE}/${{  inputs.build_script_path }}
-      if: ${{ inputs.build_script_path !='' }}
+      - name: 🛠️ Build the Lambda
+        if: ${{ inputs.build_script_path != '' }}
+        working-directory: ${{ inputs.working_directory }}
+        env:
+          SCRIPT_PATH: ${{ inputs.build_script_path }}
+        run: |
+          bash "${GITHUB_WORKSPACE}/${SCRIPT_PATH}"
 
-    - name: Deploy signed code to Lambda
-      uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@main
-      with:
+      - name: 🧮 Calculate Directory and Basename
+        if: ${{ inputs.local_build_path != '' }}
+        id: calc-path
+        env:
+          LOCAL_BUILD_PATH: ${{ inputs.local_build_path }}
+        run: |
+          echo "DIR_NAME=$(dirname "${LOCAL_BUILD_PATH}")" >> $GITHUB_OUTPUT
+          echo "BASE_NAME=$(basename "${LOCAL_BUILD_PATH}")" >> $GITHUB_OUTPUT
+
+      - name: Deploy signed code to Lambda
+        uses: SPHTech-Platform/deploy-actions/action_deploy_lambda@main
+        if: ${{ inputs.local_build_path != '' }}
+        with:
           aws_account_id: ${{ steps.aws-deploy-credentials.outputs.aws-account-id }}
           aws_region: ${{ inputs.aws_account_region}}
-          function_name: ${{inputs.lambda_function_name}}
-          working_directory: ${{ inputs.working_directory }}/$(dirname ${{ inputs.local_build_path }})
-          zipped_file_name: $(basename ${{ inputs.local_build_path }})
-      if: ${{ inputs.local_build_path !=''  }}
+          function_name: ${{ inputs.lambda_function_name }}
+          working_directory: ${{ inputs.working_directory }}/${{ steps.calc-path.outputs.DIR_NAME }}
+          zipped_file_name: ${{ steps.calc-path.outputs.BASE_NAME }}
 
-    - name: 🔄 Update Lambda Environment Variables
-      working-directory: ${{ inputs.working_directory }}
-      shell: bash
-      env:
-        env_var: ${{ env.env_var }}
-      run: |
-        # LAMBDA_ENV_INPUT_VAR="${'${{ inputs.lambda_environment_var }}'//\"/\\\"}"
-        # echo $LAMBDA_ENV_INPUT_VAR
-        UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name ${{inputs.lambda_function_name}} | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${{ inputs.lambda_environment_var }}})}")
-        aws lambda update-function-configuration --function-name ${{ inputs.lambda_function_name }} \
-        --environment ${UPDATED_ENVIRONMNET_VARIABLES}
-      if: ${{ inputs.lambda_environment_var !='' }}
+      - name: 🔄 Update Lambda Environment Variables
+        if: ${{ inputs.lambda_environment_var != '' }}
+        working-directory: ${{ inputs.working_directory }}
+        shell: bash
+        env:
+          env_var: ${{ env.env_var }}
+          FUNC_NAME: ${{ inputs.lambda_function_name }}
+          NEW_VARS: ${{ inputs.lambda_environment_var }}
+        run: |
+          UPDATED_ENVIRONMNET_VARIABLES=$(aws lambda get-function-configuration --function-name "${FUNC_NAME}" | jq --compact-output ".Environment + {\"Variables\": (.Environment.Variables + {${NEW_VARS}})}")
+
+          aws lambda update-function-configuration --function-name "${FUNC_NAME}" \
+          --environment "${UPDATED_ENVIRONMNET_VARIABLES}"
 
   register_deploy_dx:
-    if: ${{ success() || failure() }} # ensures this job runs even on failure
+    if: ${{ success() || failure() }}
     needs: [deploy-lambda]
     runs-on:
       - platform-eng-ent-v2-dual
