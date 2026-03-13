@@ -127,33 +127,38 @@ jobs:
         aws-region: ${{ inputs.aws_account_region }}
 
     - name: 💾 Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 14
         check-latest: true
       if:  ${{ inputs.language == 'nodejs' }}
 
     - name: Install Python for installing AWS CLI
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
+      if: contains(inputs.runner_label, 'platform-eng-ent-v2-dual')
 
     - name: Install AWS CLI
       run: |
         python -m pip install --upgrade pip
         pip install awscli
-      if: contains('platform-eng-ent-v2-dual', ${{ inputs.runner_label }})
+      if: contains(inputs.runner_label, 'platform-eng-ent-v2-dual')
 
     - name: 📥 Install dependencies
       env:
         CI: false
+        BUILD_SCRIPT: ${{ inputs.s3_build_script }}
       run: |
-        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_build_script }}
+        bash "${GITHUB_WORKSPACE}/${BUILD_SCRIPT}"
 
     - name: 🚀 Deploy to S3
+      env:
+        DEPLOY_SCRIPT: ${{ inputs.s3_deploy_script }}
+        FRONTEND_BUCKET: ${{ inputs.s3_frontend_bucket }}
+        ADMIN_BUCKET: ${{ inputs.s3_admin_bucket }}
       run: |
-        bash ${GITHUB_WORKSPACE}/${{  inputs.s3_deploy_script }} ${{  inputs.s3_frontend_bucket }} ${{  inputs.s3_admin_bucket }}
+        bash "${GITHUB_WORKSPACE}/${DEPLOY_SCRIPT}" "${FRONTEND_BUCKET}" "${ADMIN_BUCKET}"
 
     - name: 🚮️ Invalidate CloudFront cache for Frontend
       uses: chetan/invalidate-cloudfront-action@v2.4

@@ -86,10 +86,28 @@ jobs:
       - name: ⏳ Checkout
         uses: actions/checkout@v4
 
+      - name: 🔍 Check for Node Version File
+        id: check_nvmrc
+        env:
+          WORKING_DIR: ${{ inputs.working_directory }}
+          NODE_VERSION_FILE: ${{ inputs.node_version_file }}
+        run: |
+          if [ -f "${WORKING_DIR}/${NODE_VERSION_FILE}" ] || [ -f "${NODE_VERSION_FILE}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: 🔋 Setup Node.js
+        if: ${{ steps.check_nvmrc.outputs.exists == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version-file: ${{ inputs.node_version_file }}
+
+      - name: 🔋 Setup Node.js
+        if: ${{ steps.check_nvmrc.outputs.exists == 'false' }}
+        uses: actions/setup-node@v4
+        with:
           node-version: ${{ env.NODE_VERSION || '22' }}
 
       - name: 📦 Setup PNPM
@@ -103,7 +121,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
             pnpm install
           else
             npm install
@@ -114,7 +132,7 @@ jobs:
         env:
           PKG_MANAGER: ${{ inputs.package_manager }}
         run: |
-          if [ "$PKG_MANAGER" == "pnpm" ]; then
+          if [ "${PKG_MANAGER}" == "pnpm" ]; then
             pnpm run build
           else
             npm run build
@@ -156,7 +174,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Install Python for installing AWS CLI
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
         if: contains(inputs.runner_label, 'platform-eng-ent-v2-dual')
@@ -169,12 +187,16 @@ jobs:
 
       - name: 🚀 Deploy lambda
         working-directory: ${{ inputs.working_directory }}
+        env:
+          FUNC_NAME: ${{ inputs.lambda_function_name }}
+          ARCH: ${{ inputs.lambda_architecture }}
+          REGION: ${{ vars.AWS_REGION }}
         run: |
           aws lambda update-function-code \
-            --function-name ${{ inputs.lambda_function_name }} \
+            --function-name "${FUNC_NAME}" \
             --zip-file fileb://lambda.zip \
-            --architectures=${{ inputs.lambda_architecture }} \
-            --region ${{ vars.AWS_REGION }}
+            --architectures="${ARCH}" \
+            --region "${REGION}"
 
   register_deploy_dx:
     if: ${{ success() || failure() }} # ensures this job runs even on failure
